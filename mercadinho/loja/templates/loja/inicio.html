@@ -1,30 +1,192 @@
-{% extends 'loja/base.html' %}
-{% block title %}Mercado da Vila — coisas boas por perto{% endblock %}
-{% block content %}
-<section class="hero">
-  <div class="container hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow"><span class="eyebrow-line"></span> BEM-VINDO AO MERCADO DA VILA</span>
-      <h1>Seu dia fica <em>melhor</em> com boas escolhas.</h1>
-      <p>Produtos especiais, gente de verdade e um jeito simples de comprar. Descubra seus novos favoritos sem sair de casa.</p>
-      <div class="hero-actions"><a class="button button-light" href="{% url 'loja:catalogo' %}">Explorar produtos <span aria-hidden="true">↗</span></a><a class="text-link text-link-light" href="#como-funciona">Como funciona <span aria-hidden="true">↓</span></a></div>
-      <div class="hero-trust"><span class="mini-star">✳</span><span>Escolhidos a dedo<br><strong>para você</strong></span></div>
-    </div>
-    <div class="hero-art" aria-hidden="true">
-      <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
-      <div class="hero-circle"></div>
-      <div class="hero-item hero-item-coffee">☕</div><div class="hero-item hero-item-lemon">🍋</div><div class="hero-item hero-item-bread">🥖</div><div class="hero-item hero-item-leaf">🌿</div>
-      <div class="hero-sticker">bom<br>demais<span>✳</span></div>
-    </div>
-  </div>
-</section>
-<div class="benefit-strip"><div class="container benefit-inner"><span>✳ Seleção especial</span><span>✳ Compra descomplicada</span><span>✳ Produtos de parceiros</span><span>✳ Entrega a combinar</span></div></div>
-<section class="section section-featured">
-  <div class="container">
-    <div class="section-heading"><div><span class="eyebrow eyebrow-dark">ESCOLHAS DA VILA</span><h2>Os favoritos por aqui<span class="accent-dot">.</span></h2><p>Uma seleção pequena, boa e cheia de personalidade.</p></div><a class="text-link" href="{% url 'loja:catalogo' %}">Ver todos os produtos <span aria-hidden="true">↗</span></a></div>
-    {% if destaques %}<div class="product-grid">{% for produto in destaques %}{% include 'loja/_product_card.html' %}{% endfor %}</div>{% else %}<div class="empty-state"><span>🛒</span><h3>Em breve, produtos por aqui</h3><p>Cadastre produtos pelo painel de administração para começar.</p></div>{% endif %}
-  </div>
-</section>
-<section class="story-section" id="como-funciona"><div class="container story-grid"><div class="story-visual" aria-hidden="true"><span class="story-sun">✳</span><span class="story-bag">🛍️</span><span class="story-spark spark-a">✦</span><span class="story-spark spark-b">✦</span></div><div class="story-copy"><span class="eyebrow eyebrow-dark">SIMPLES ASSIM</span><h2>Da nossa vitrine para o seu dia.</h2><p>Escolha o que gosta, monte seu carrinho e envie o pedido. A gente registra tudo direitinho para você acompanhar o resumo.</p><div class="steps"><div><span>01</span><p><strong>Explore</strong>Encontre produtos no catálogo.</p></div><div><span>02</span><p><strong>Escolha</strong>Adicione ao carrinho e ajuste quantidades.</p></div><div><span>03</span><p><strong>Finalize</strong>Confira os valores e registre seu pedido.</p></div></div><a class="button button-dark" href="{% url 'loja:catalogo' %}">Começar a escolher <span aria-hidden="true">↗</span></a></div></div></section>
-<section class="closing-banner"><div class="container"><div><span class="eyebrow">SEU CARRINHO TE ESPERA</span><h2>Tem coisa boa<br>logo ali.</h2></div><a class="button button-light" href="{% url 'loja:catalogo' %}">Ir para a loja <span aria-hidden="true">↗</span></a></div></section>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercado da Vila</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f6f7f2;
+            color: #26352b;
+        }
+
+        header {
+            background: #315b3d;
+            color: white;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .banner {
+            background: #e4eddd;
+            padding: 48px 8%;
+        }
+
+        .banner h2 {
+            margin: 0 0 10px;
+            font-size: 34px;
+        }
+
+        .banner p {
+            margin: 0;
+            color: #536458;
+        }
+
+        main {
+            padding: 35px 8%;
+        }
+
+        .titulo-produtos {
+            margin-bottom: 20px;
+        }
+
+        .titulo-produtos h2 {
+            margin: 0;
+        }
+
+        .grade-produtos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .produto {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #00000012;
+        }
+
+        .produto h3 {
+            margin-top: 0;
+        }
+
+        .vendedor {
+            color: #68766c;
+            font-size: 14px;
+        }
+
+        .preco {
+            color: #315b3d;
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        button {
+            width: 100%;
+            border: 0;
+            border-radius: 6px;
+            padding: 12px;
+            background: #315b3d;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #24482f;
+        }
+
+        .mensagem {
+            background: #fff3cd;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .vazio {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        footer {
+            padding: 22px 8%;
+            background: #e4eddd;
+            color: #536458;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mercado da Vila</h1>
+        <a href="{% url 'carrinho' %}">Meu carrinho</a>
+    </header>
+
+    <section class="banner">
+        <h2>Produtos da sua vila</h2>
+        <p>Confira os produtos disponíveis e faça seu pedido.</p>
+    </section>
+
+    <main>
+        {% if messages %}
+            {% for message in messages %}
+                <p class="mensagem">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <div class="titulo-produtos">
+            <h2>Produtos disponíveis</h2>
+        </div>
+
+        {% if produtos %}
+            <div class="grade-produtos">
+                {% for produto in produtos %}
+                    <article class="produto">
+                        <h3>{{ produto.nome }}</h3>
+
+                        <p class="vendedor">
+                            Vendido por {{ produto.vendedor.nome }}
+                        </p>
+
+                        <p>
+                            {{ produto.descricao|default:"Produto disponível no Mercado da Vila." }}
+                        </p>
+
+                        <p class="preco">
+                            R$ {{ produto.preco|floatformat:2 }}
+                        </p>
+
+                        <p>Estoque: {{ produto.estoque }}</p>
+
+                        <form method="post" action="{% url 'adicionar' produto.id %}">
+                            {% csrf_token %}
+                            <button type="submit">Adicionar ao carrinho</button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="vazio">
+                <h3>Nenhum produto cadastrado</h3>
+                <p>Cadastre produtos pelo painel administrativo do Django.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer>
+        Mercado da Vila
+    </footer>
+</body>
+</html>
