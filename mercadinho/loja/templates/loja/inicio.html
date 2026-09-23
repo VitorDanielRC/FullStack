@@ -57,9 +57,6 @@
         }
 
         .titulo-produtos {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 20px;
         }
 
@@ -134,7 +131,7 @@
 <body>
     <header>
         <h1>Mercado da Vila</h1>
-        <a href="{% url 'ver_carrinho' %}">Meu carrinho</a>
+        <a href="{% url 'carrinho' %}">Meu carrinho</a>
     </header>
 
     <section class="banner">
@@ -163,7 +160,9 @@
                             Vendido por {{ produto.vendedor.nome }}
                         </p>
 
-                        <p>{{ produto.descricao|default:"Produto disponível no Mercado da Vila." }}</p>
+                        <p>
+                            {{ produto.descricao|default:"Produto disponível no Mercado da Vila." }}
+                        </p>
 
                         <p class="preco">
                             R$ {{ produto.preco|floatformat:2 }}
@@ -171,10 +170,7 @@
 
                         <p>Estoque: {{ produto.estoque }}</p>
 
-                        <form
-                            method="post"
-                            action="{% url 'adicionar_carrinho' produto.id %}"
-                        >
+                        <form method="post" action="{% url 'adicionar' produto.id %}">
                             {% csrf_token %}
                             <button type="submit">Adicionar ao carrinho</button>
                         </form>
