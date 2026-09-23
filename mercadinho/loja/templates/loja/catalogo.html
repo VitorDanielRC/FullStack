@@ -1,10 +1,30 @@
-{% extends 'loja/base.html' %}
-{% block title %}Produtos — Mercado da Vila{% endblock %}
-{% block content %}
-<section class="page-intro"><div class="container"><span class="eyebrow eyebrow-dark">CATÁLOGO DA VILA</span><h1>Encontre sua próxima<br><em>coisa favorita.</em></h1><p>Escolhas que deixam a rotina mais gostosa.</p></div></section>
-<section class="section catalog-section"><div class="container">
-  <div class="catalog-toolbar"><nav class="category-list" aria-label="Categorias"><a href="{% url 'loja:catalogo' %}{% if busca %}?q={{ busca|urlencode }}{% endif %}" {% if not categoria_ativa %}aria-current="page"{% endif %}>Todos</a>{% for valor, nome in categorias %}<a href="{% url 'loja:catalogo' %}?categoria={{ valor }}{% if busca %}&q={{ busca|urlencode }}{% endif %}" {% if categoria_ativa == valor %}aria-current="page"{% endif %}>{{ nome }}</a>{% endfor %}</nav><form class="search-form" method="get" action="{% url 'loja:catalogo' %}" role="search"><label class="sr-only" for="q">Buscar produtos</label><input id="q" type="search" name="q" placeholder="Buscar produtos" value="{{ busca }}">{% if categoria_ativa %}<input type="hidden" name="categoria" value="{{ categoria_ativa }}">{% endif %}<button type="submit" aria-label="Buscar">⌕</button></form></div>
-  <p class="result-count">{{ produtos|length }} produto{{ produtos|length|pluralize }} encontrado{{ produtos|length|pluralize }}</p>
-  {% if produtos %}<div class="product-grid">{% for produto in produtos %}{% include 'loja/_product_card.html' %}{% endfor %}</div>{% else %}<div class="empty-state"><span>🔎</span><h2>Nenhum produto encontrado</h2><p>Tente outra busca ou escolha uma categoria diferente.</p><a class="button button-dark" href="{% url 'loja:catalogo' %}">Ver todos os produtos</a></div>{% endif %}
-</div></section>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Mercado da Vila</title>
+</head>
+<body>
+    <h1>Mercado da Vila</h1>
+    <p><a href="{% url 'ver_carrinho' %}">Ver carrinho</a></p>
+
+    <h2>Produtos</h2>
+
+    {% for produto in produtos %}
+        <article>
+            <h3>{{ produto.nome }}</h3>
+            <p>Vendedor: {{ produto.vendedor.nome }}</p>
+            <p>Preço: R$ {{ produto.preco }}</p>
+            <p>Estoque: {{ produto.estoque }}</p>
+
+            <form method="post" action="{% url 'adicionar_carrinho' produto.id %}">
+                {% csrf_token %}
+                <button type="submit">Adicionar ao carrinho</button>
+            </form>
+        </article>
+        <hr>
+    {% empty %}
+        <p>Nenhum produto disponível.</p>
+    {% endfor %}
+</body>
+</html>
