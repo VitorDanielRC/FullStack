@@ -1,0 +1,60 @@
+diff --git a/mercadinho/loja/models.py b/mercadinho/loja/models.py
+index 7061516..6e67bab 100644
+--- a/mercadinho/loja/models.py
++++ b/mercadinho/loja/models.py
+@@ -31,7 +31,10 @@ class Produto(models.Model):
+ class Cupom(models.Model):
+     codigo = models.CharField(max_length=30, unique=True)
+     desconto_percentual = models.PositiveSmallIntegerField(
+-        validators=[MinValueValidator(1), MaxValueValidator(100)]
++        validators=[
++            MinValueValidator(1),
++            MaxValueValidator(100),
++        ]
+     )
+     ativo = models.BooleanField(default=True)
+ 
+@@ -40,7 +43,11 @@ class Cupom(models.Model):
+ 
+ 
+ class Pedido(models.Model):
+-    numero = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
++    numero = models.UUIDField(
++        default=uuid.uuid4,
++        unique=True,
++        editable=False,
++    )
+     nome_cliente = models.CharField(max_length=100)
+     criado_em = models.DateTimeField(auto_now_add=True)
+     cupom = models.ForeignKey(
+@@ -49,7 +56,11 @@ class Pedido(models.Model):
+         null=True,
+         blank=True,
+     )
+-    total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
++    total = models.DecimalField(
++        max_digits=10,
++        decimal_places=2,
++        default=Decimal("0.00"),
++    )
+ 
+     def __str__(self):
+         return f"Pedido {str(self.numero)[:8]}"
+@@ -61,9 +72,15 @@ class ItemPedido(models.Model):
+         on_delete=models.CASCADE,
+         related_name="itens",
+     )
+-    produto = models.ForeignKey(Produto, on_delete=models.PROTECT)
++    produto = models.ForeignKey(
++        Produto,
++        on_delete=models.PROTECT,
++    )
+     quantidade = models.PositiveIntegerField()
+-    preco_unitario = models.DecimalField(max_digits=8, decimal_places=2)
++    preco_unitario = models.DecimalField(
++        max_digits=8,
++        decimal_places=2,
++    )
+ 
+     @property
+     def subtotal(self):
