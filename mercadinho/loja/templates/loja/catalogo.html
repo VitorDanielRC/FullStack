@@ -1,30 +1,64 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Mercado da Vila</title>
-</head>
-<body>
-    <h1>Mercado da Vila</h1>
-    <p><a href="{% url 'ver_carrinho' %}">Ver carrinho</a></p>
+{% extends 'loja/base.html' %}
 
-    <h2>Produtos</h2>
+{% block title %}Produtos — Mercado da Vila{% endblock %}
 
-    {% for produto in produtos %}
-        <article>
-            <h3>{{ produto.nome }}</h3>
-            <p>Vendedor: {{ produto.vendedor.nome }}</p>
-            <p>Preço: R$ {{ produto.preco }}</p>
-            <p>Estoque: {{ produto.estoque }}</p>
+{% block content %}
+<section class="page-intro">
+  <div class="container">
+    <span class="eyebrow eyebrow-dark">CATÁLOGO DA VILA</span>
+    <h1>Produtos</h1>
+    <p>Busque pelo nome ou descrição e filtre por categoria.</p>
+  </div>
+</section>
 
-            <form method="post" action="{% url 'adicionar_carrinho' produto.id %}">
-                {% csrf_token %}
-                <button type="submit">Adicionar ao carrinho</button>
-            </form>
-        </article>
-        <hr>
-    {% empty %}
-        <p>Nenhum produto disponível.</p>
-    {% endfor %}
-</body>
-</html>
+<section class="section catalog-section">
+  <div class="container">
+
+    <form method="get" action="{% url 'loja:catalogo' %}">
+      <label for="q">Buscar produto:</label>
+      <input
+        id="q"
+        type="search"
+        name="q"
+        placeholder="Digite o nome ou descrição"
+        value="{{ busca }}"
+      >
+
+      <label for="categoria">Categoria:</label>
+      <select id="categoria" name="categoria">
+        <option value="">Todas as categorias</option>
+
+        {% for valor, nome in categorias %}
+          <option
+            value="{{ valor }}"
+            {% if categoria_selecionada == valor %}selected{% endif %}
+          >
+            {{ nome }}
+          </option>
+        {% endfor %}
+      </select>
+
+      <button type="submit">Buscar</button>
+      <a href="{% url 'loja:catalogo' %}">Limpar filtros</a>
+    </form>
+
+    {% if produtos %}
+      <div class="product-grid">
+        {% for produto in produtos %}
+          {% include 'loja/_product_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <span>🔎</span>
+        <h2>Nenhum produto encontrado</h2>
+        <p>Tente outra busca ou selecione uma categoria diferente.</p>
+        <a class="button button-dark" href="{% url 'loja:catalogo' %}">
+          Ver todos os produtos
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
