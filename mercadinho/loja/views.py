@@ -35,32 +35,25 @@ def inicio(request):
 def catalogo(request):
     produtos = Produto.objects.filter(
         ativo=True,
-        vendedor__ativo=True,
+        vendedor__ativo=True
     ).select_related("vendedor")
 
-    busca = request.GET.get("q", "").strip()[:100]
     categoria = request.GET.get("categoria", "")
+    busca = request.GET.get("q", "").strip()[:100]
 
-    if busca:
-        produtos = produtos.filter(
-            Q(nome__icontains=busca) |
-            Q(descricao__icontains=busca)
-        )
-
-    categorias_validas = [
-        valor for valor, nome in Produto.Categoria.choices
-    ]
-
-    if categoria in categorias_validas:
+    if categoria in Produto.Categoria.values:
         produtos = produtos.filter(categoria=categoria)
     else:
         categoria = ""
 
+    if busca:
+        produtos = produtos.filter(nome__icontains=busca)
+
     return render(request, "loja/catalogo.html", {
         "produtos": produtos,
-        "busca": busca,
-        "categoria_selecionada": categoria,
         "categorias": Produto.Categoria.choices,
+        "categoria_ativa": categoria,
+        "busca": busca,
         vendedor__ativo=True
     ).select_related("vendedor")
 
