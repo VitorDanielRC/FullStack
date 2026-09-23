@@ -26,19 +26,32 @@ class Produto(models.Model):
         FRESCOS = "frescos", "Frescos"
         CASA = "casa", "Casa"
 
-    vendedor = models.ForeignKey(Vendedor, on_delete=models.PROTECT, related_name="produtos")
+    vendedor = models.ForeignKey(
+        Vendedor,
+        on_delete=models.PROTECT,
+        related_name="produtos",
+    )
     nome = models.CharField(max_length=140)
     slug = models.SlugField(unique=True)
     descricao = models.TextField()
     categoria = models.CharField(max_length=20, choices=Categoria.choices)
-    preco = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
-    estoque = models.PositiveIntegerField(default=0)
+    preco = models.DecimalField(max_digits=10, decimal_places=2)
+    estoque = models.IntegerField(default=0)
     imagem_url = models.URLField(blank=True, verbose_name="URL da imagem")
-    icone = models.CharField(max_length=8, default="🛒", help_text="Ícone usado quando não há imagem")
+    icone = models.CharField(
+        max_length=8,
+        default="🛒",
+        help_text="Ícone usado quando não há imagem",
+    )
     cor = models.CharField(
         max_length=7,
         default="#E7EBD6",
-        validators=[RegexValidator(r"^#[0-9A-Fa-f]{6}$", "Use uma cor hexadecimal, como #E7EBD6.")],
+        validators=[
+            RegexValidator(
+                r"^#[0-9A-Fa-f]{6}$",
+                "Use uma cor hexadecimal, como #E7EBD6.",
+            )
+        ],
         help_text="Cor de fundo em hexadecimal",
     )
     destaque = models.BooleanField(default=False)
@@ -87,11 +100,20 @@ class Pedido(models.Model):
     endereco = models.CharField(max_length=200, verbose_name="Endereço")
     cidade = models.CharField(max_length=100)
     cep = models.CharField(max_length=10, verbose_name="CEP")
-    cupom = models.ForeignKey(Cupom, null=True, blank=True, on_delete=models.SET_NULL)
+    cupom = models.ForeignKey(
+        Cupom,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.RECEBIDO)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.RECEBIDO,
+    )
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -103,10 +125,16 @@ class Pedido(models.Model):
 
 
 class ItemPedido(models.Model):
-    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="itens")
+    pedido = models.ForeignKey(
+        Pedido,
+        on_delete=models.CASCADE,
+        related_name="itens",
+    )
     produto = models.ForeignKey(Produto, on_delete=models.PROTECT)
     nome_produto = models.CharField(max_length=140)
-    quantidade = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    quantidade = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)]
+    )
     preco_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
 
