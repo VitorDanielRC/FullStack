@@ -6,41 +6,103 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173c32">
   <meta name="description" content="Mercado da Vila: uma seleção de produtos para deixar o dia a dia mais gostoso.">
+
   <link rel="icon" type="image/svg+xml" href="{% static 'loja/favicon.svg' %}">
   <title>{% block title %}Mercado da Vila{% endblock %}</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'loja/style.css' %}">
 </head>
 <body>
-  <div class="announcement">Uma seleção feita para o seu dia a dia <span aria-hidden="true">✳</span> Entrega a combinar</div>
+  <div class="announcement">
+    Uma seleção feita para o seu dia a dia
+    <span aria-hidden="true">✳</span>
+    Entrega a combinar
+  </div>
+
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="{% url 'loja:inicio' %}" aria-label="Mercado da Vila, início"><span class="brand-mark" aria-hidden="true">✳</span> vila<span class="brand-dot">.</span></a>
+      <a class="brand" href="{% url 'loja:inicio' %}" aria-label="Mercado da Vila, início">
+        <span class="brand-mark" aria-hidden="true">✳</span>
+        vila<span class="brand-dot">.</span>
+      </a>
+
       <nav class="main-nav" aria-label="Navegação principal">
-        <a href="{% url 'loja:inicio' %}" {% if request.resolver_match.url_name == 'inicio' %}aria-current="page"{% endif %}>Início</a>
-        <a href="{% url 'loja:catalogo' %}" {% if request.resolver_match.url_name == 'catalogo' %}aria-current="page"{% endif %}>Produtos</a>
+        <a href="{% url 'loja:inicio' %}"
+           {% if request.resolver_match.url_name == 'inicio' %}aria-current="page"{% endif %}>
+          Início
+        </a>
+
+        <a href="{% url 'loja:catalogo' %}"
+           {% if request.resolver_match.url_name == 'catalogo' %}aria-current="page"{% endif %}>
+          Produtos
+        </a>
+
+        <a href="{% url 'loja:cadastrar_produto' %}"
+           {% if request.resolver_match.url_name == 'cadastrar_produto' %}aria-current="page"{% endif %}>
+          Cadastrar produto
+        </a>
       </nav>
-      <a class="cart-link" href="{% url 'loja:carrinho' %}" aria-label="Carrinho com {% if contagem_carrinho == 1 %}1 item{% else %}{{ contagem_carrinho }} itens{% endif %}">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2 11h11l2-8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
-        <span>Carrinho</span><span class="cart-count">{{ contagem_carrinho }}</span>
+
+      <a class="cart-link"
+         href="{% url 'loja:carrinho' %}"
+         aria-label="Carrinho com {% if contagem_carrinho == 1 %}1 item{% else %}{{ contagem_carrinho }} itens{% endif %}">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 4h2l2 11h11l2-8H6"/>
+          <circle cx="9" cy="20" r="1"/>
+          <circle cx="18" cy="20" r="1"/>
+        </svg>
+        <span>Carrinho</span>
+        <span class="cart-count">{{ contagem_carrinho }}</span>
       </a>
     </div>
   </header>
+
   {% if messages %}
     <div class="container message-stack" role="status" aria-live="polite">
-      {% for message in messages %}<div class="message message-{{ message.tags|default:'info' }}">{{ message }}</div>{% endfor %}
+      {% for message in messages %}
+        <div class="message message-{{ message.tags|default:'info' }}">
+          {{ message }}
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
-  <main id="conteudo">{% block content %}{% endblock %}</main>
+
+  <main id="conteudo">
+    {% block content %}{% endblock %}
+  </main>
+
   <footer class="site-footer">
     <div class="container footer-grid">
-      <div><a class="brand brand-footer" href="{% url 'loja:inicio' %}"><span class="brand-mark" aria-hidden="true">✳</span> vila<span class="brand-dot">.</span></a><p>Coisas boas para fazer do cotidiano um lugar melhor.</p></div>
-      <div><strong>Explore</strong><a href="{% url 'loja:catalogo' %}">Todos os produtos</a><a href="{% url 'loja:carrinho' %}">Meu carrinho</a></div>
-      <div><strong>Sobre seu pedido</strong><p>Os pedidos são registrados aqui. O pagamento e a entrega são combinados separadamente.</p></div>
+      <div>
+        <a class="brand brand-footer" href="{% url 'loja:inicio' %}">
+          <span class="brand-mark" aria-hidden="true">✳</span>
+          vila<span class="brand-dot">.</span>
+        </a>
+        <p>Coisas boas para fazer do cotidiano um lugar melhor.</p>
+      </div>
+
+      <div>
+        <strong>Explore</strong>
+        <a href="{% url 'loja:catalogo' %}">Todos os produtos</a>
+        <a href="{% url 'loja:cadastrar_produto' %}">Cadastrar produto</a>
+        <a href="{% url 'loja:carrinho' %}">Meu carrinho</a>
+      </div>
+
+      <div>
+        <strong>Sobre seu pedido</strong>
+        <p>Os pedidos são registrados aqui. O pagamento e a entrega são combinados separadamente.</p>
+      </div>
     </div>
-    <div class="container footer-bottom"><span>© {% now "Y" %} Mercado da Vila</span><span>Feito com cuidado, de ponta a ponta.</span></div>
+
+    <div class="container footer-bottom">
+      <span>© {% now "Y" %} Mercado da Vila</span>
+      <span>Feito com cuidado, de ponta a ponta.</span>
+    </div>
   </footer>
 </body>
 </html>
