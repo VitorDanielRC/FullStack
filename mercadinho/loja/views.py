@@ -33,34 +33,9 @@ def inicio(request):
 
 
 def catalogo(request):
-    produtos = Produto.objects.filter(
-        ativo=True,
-        vendedor__ativo=True
-    ).select_related("vendedor")
+    from .cadastro import catalogo as mostrar_catalogo
 
-    categoria = request.GET.get("categoria", "")
-    busca = request.GET.get("q", "").strip()[:100]
-
-    if categoria in Produto.Categoria.values:
-        produtos = produtos.filter(categoria=categoria)
-    else:
-        categoria = ""
-
-    if busca:
-        produtos = produtos.filter(nome__icontains=busca)
-
-    return render(request, "loja/catalogo.html", {
-        "produtos": produtos,
-        "categorias": Produto.Categoria.choices,
-        "categoria_ativa": categoria,
-        "busca": busca,
-        vendedor__ativo=True
-    ).select_related("vendedor")
-
-    return render(request, "loja/catalogo.html", {
-        "produtos": produtos,
-    })
-
+    return mostrar_catalogo(request)
 
 def produto(request, slug):
     item = get_object_or_404(
