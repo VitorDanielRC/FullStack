@@ -5,7 +5,6 @@
 {% block content %}
 <section style="padding: 40px 8%; background: #e4eddd;">
     <h1 style="color: #315b3d;">Produtos da Vila</h1>
-    <p>Busque pelo nome do produto ou vendedor e filtre por categoria.</p>
 
     <a href="{% url 'loja:cadastrar_produto' %}"
        style="display: inline-block; padding: 12px 18px; border-radius: 6px;
@@ -15,33 +14,6 @@
 </section>
 
 <main style="padding: 35px 8%;">
-    <form method="get"
-          action="{% url 'loja:catalogo' %}"
-          style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;">
-
-        <input type="search"
-               name="q"
-               placeholder="Buscar produto ou vendedor"
-               value="{{ busca }}"
-               style="flex: 1; min-width: 200px; padding: 12px;">
-
-        <select name="categoria" style="padding: 12px;">
-            <option value="">Todas as categorias</option>
-            {% for valor, nome in categorias %}
-                <option value="{{ valor }}"
-                        {% if categoria_ativa == valor %}selected{% endif %}>
-                    {{ nome }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <button type="submit"
-                style="padding: 12px 20px; border: 0; border-radius: 6px;
-                       background: #315b3d; color: white; cursor: pointer;">
-            Buscar
-        </button>
-    </form>
-
     <div style="display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 20px;">
@@ -80,19 +52,8 @@
             </article>
         {% empty %}
             <section style="padding: 25px; border-radius: 10px; background: white;">
-                {% if busca and categoria_ativa %}
-                    <h2>Nenhum produto encontrado</h2>
-                    <p>Não encontramos produtos para “{{ busca }}” nessa categoria.</p>
-                {% elif busca %}
-                    <h2>Nenhum produto encontrado</h2>
-                    <p>Não encontramos produtos para “{{ busca }}”.</p>
-                {% elif categoria_ativa %}
-                    <h2>Nenhum produto nesta categoria</h2>
-                    <p>Você pode escolher outra categoria.</p>
-                {% else %}
-                    <h2>Nenhum produto cadastrado</h2>
-                    <p>Cadastre um produto pelo botão acima.</p>
-                {% endif %}
+                <h2>Nenhum produto cadastrado</h2>
+                <p>Cadastre um produto pelo botão acima.</p>
             </section>
         {% endfor %}
     </div>
