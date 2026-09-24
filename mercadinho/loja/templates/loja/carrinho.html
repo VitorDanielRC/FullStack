@@ -1,47 +1,28 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Carrinho — Mercado da Vila</title>
-</head>
-<body>
-    <h1>Seu carrinho</h1>
-    <p><a href="{% url 'catalogo' %}">Continuar comprando</a></p>
+{% extends "loja/base.html" %}
+
+{% block title %}Meu carrinho | Mercado da Vila{% endblock %}
+
+{% block content %}
+<main class="container" style="padding-top: 32px; padding-bottom: 40px;">
+    <h1>Meu carrinho</h1>
+
+    <p>
+        <a href="{% url 'loja:catalogo' %}">Continuar comprando</a>
+    </p>
 
     {% if itens %}
         {% for item in itens %}
-            <article>
+            <article style="padding: 16px 0; border-bottom: 1px solid #ddd;">
                 <h2>{{ item.produto.nome }}</h2>
                 <p>Quantidade: {{ item.quantidade }}</p>
-                <p>Subtotal: R$ {{ item.subtotal }}</p>
+                <p>Subtotal: R$ {{ item.subtotal|floatformat:2 }}</p>
             </article>
-            <hr>
         {% endfor %}
 
-        <h2>Total: R$ {{ total }}</h2>
-
-        <form method="post" action="{% url 'finalizar_pedido' %}">
-            {% csrf_token %}
-
-            <p>
-                <label for="nome_cliente">Seu nome:</label>
-                <input
-                    type="text"
-                    id="nome_cliente"
-                    name="nome_cliente"
-                    required
-                >
-            </p>
-
-            <p>
-                <label for="cupom">Cupom (opcional):</label>
-                <input type="text" id="cupom" name="cupom">
-            </p>
-
-            <button type="submit">Finalizar pedido</button>
-        </form>
+        <h2>Total: R$ {{ subtotal|floatformat:2 }}</h2>
+        <p>Total de itens: {{ quantidade_total }}</p>
     {% else %}
         <p>Seu carrinho está vazio.</p>
     {% endif %}
-</body>
-</html>
+</main>
+{% endblock %}
