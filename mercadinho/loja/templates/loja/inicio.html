@@ -1,196 +1,74 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mercado da Vila</title>
+{% extends 'loja/base.html' %}
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+{% block title %}Mercado da Vila{% endblock %}
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f6f7f2;
-            color: #26352b;
-        }
+{% block content %}
 
-        header {
-            background: #315b3d;
-            color: white;
-            padding: 18px 8%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+<section style="background: #e4eddd; padding: 48px 8%;">
+    <h1 style="margin-top: 0; color: #315b3d;">Produtos da sua vila</h1>
+    <p style="color: #536458;">
+        Confira os produtos disponíveis e faça seu pedido.
+    </p>
 
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
+    <a href="{% url 'loja:catalogo' %}"
+       style="display: inline-block; margin-top: 12px; padding: 12px 20px;
+              border-radius: 6px; background: #315b3d; color: white;
+              text-decoration: none; font-weight: bold;">
+        Ver todos os produtos
+    </a>
+</section>
 
-        header a {
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
+<section style="padding: 35px 8%;">
+    <h2 style="color: #26352b;">Produtos em destaque</h2>
 
-        .banner {
-            background: #e4eddd;
-            padding: 48px 8%;
-        }
+    {% if destaques %}
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                    gap: 20px;">
 
-        .banner h2 {
-            margin: 0 0 10px;
-            font-size: 34px;
-        }
+            {% for produto in destaques %}
+                <article style="padding: 20px; border-radius: 10px;
+                                background: white; box-shadow: 0 2px 8px #00000012;">
 
-        .banner p {
-            margin: 0;
-            color: #536458;
-        }
+                    <h3 style="margin-top: 0;">{{ produto.nome }}</h3>
 
-        main {
-            padding: 35px 8%;
-        }
+                    <p style="color: #68766c;">
+                        Vendido por {{ produto.vendedor.nome }}
+                    </p>
 
-        .titulo-produtos {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+                    <p>{{ produto.descricao }}</p>
 
-        .titulo-produtos h2 {
-            margin: 0;
-        }
+                    <p style="color: #315b3d; font-size: 21px; font-weight: bold;">
+                        R$ {{ produto.preco|floatformat:2 }}
+                    </p>
 
-        .grade-produtos {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-        }
-
-        .produto {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px #00000012;
-        }
-
-        .produto h3 {
-            margin-top: 0;
-        }
-
-        .vendedor {
-            color: #68766c;
-            font-size: 14px;
-        }
-
-        .preco {
-            color: #315b3d;
-            font-size: 21px;
-            font-weight: bold;
-        }
-
-        button {
-            width: 100%;
-            border: 0;
-            border-radius: 6px;
-            padding: 12px;
-            background: #315b3d;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #24482f;
-        }
-
-        .mensagem {
-            background: #fff3cd;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-        }
-
-        .vazio {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-        }
-
-        footer {
-            padding: 22px 8%;
-            background: #e4eddd;
-            color: #536458;
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Mercado da Vila</h1>
-        <a href="{% url 'ver_carrinho' %}">Meu carrinho</a>
-    </header>
-
-    <section class="banner">
-        <h2>Produtos da sua vila</h2>
-        <p>Confira os produtos disponíveis e faça seu pedido.</p>
-    </section>
-
-    <main>
-        {% if messages %}
-            {% for message in messages %}
-                <p class="mensagem">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-
-        <div class="titulo-produtos">
-            <h2>Produtos disponíveis</h2>
-        </div>
-
-        {% if produtos %}
-            <div class="grade-produtos">
-                {% for produto in produtos %}
-                    <article class="produto">
-                        <h3>{{ produto.nome }}</h3>
-
-                        <p class="vendedor">
-                            Vendido por {{ produto.vendedor.nome }}
-                        </p>
-
-                        <p>{{ produto.descricao|default:"Produto disponível no Mercado da Vila." }}</p>
-
-                        <p class="preco">
-                            R$ {{ produto.preco|floatformat:2 }}
-                        </p>
-
-                        <p>Estoque: {{ produto.estoque }}</p>
-
-                        <form
-                            method="post"
-                            action="{% url 'adicionar_carrinho' produto.id %}"
-                        >
+                    {% if produto.estoque > 0 %}
+                        <form method="post"
+                              action="{% url 'loja:adicionar' produto.id %}">
                             {% csrf_token %}
-                            <button type="submit">Adicionar ao carrinho</button>
-                        </form>
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="vazio">
-                <h3>Nenhum produto cadastrado</h3>
-                <p>Cadastre produtos pelo painel administrativo do Django.</p>
-            </div>
-        {% endif %}
-    </main>
+                            <input type="hidden" name="quantidade" value="1">
 
-    <footer>
-        Mercado da Vila
-    </footer>
-</body>
-</html>
+                            <button type="submit"
+                                    style="width: 100%; border: 0; border-radius: 6px;
+                                           padding: 12px; background: #315b3d;
+                                           color: white; font-weight: bold;
+                                           cursor: pointer;">
+                                Adicionar ao carrinho
+                            </button>
+                        </form>
+                    {% else %}
+                        <p>Produto esgotado.</p>
+                    {% endif %}
+
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="padding: 25px; border-radius: 10px; background: white;">
+            <h3>Nenhum produto em destaque</h3>
+            <p>Cadastre produtos pelo painel administrativo do Django.</p>
+        </div>
+    {% endif %}
+</section>
+
+{% endblock %}
