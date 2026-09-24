@@ -3,62 +3,93 @@
 {% block title %}Produtos — Mercado da Vila{% endblock %}
 
 {% block content %}
-<section class="page-intro">
-  <div class="container">
-    <span class="eyebrow eyebrow-dark">CATÁLOGO DA VILA</span>
-    <h1>Produtos</h1>
-    <p>Busque pelo nome ou descrição e filtre por categoria.</p>
-  </div>
+<section style="padding: 40px 8%; background: #e4eddd;">
+    <h1 style="color: #315b3d;">Produtos da Vila</h1>
+    <p>Busque produtos ou escolha uma categoria.</p>
+
+    <a href="{% url 'loja:cadastrar_produto' %}"
+       style="display: inline-block; padding: 12px 18px; border-radius: 6px;
+              background: #315b3d; color: white; text-decoration: none;">
+        Cadastrar produto
+    </a>
 </section>
 
-<section class="section catalog-section">
-  <div class="container">
+<main style="padding: 35px 8%;">
+    <form method="get"
+          action="{% url 'loja:catalogo' %}"
+          style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;">
 
-    <form method="get" action="{% url 'loja:catalogo' %}">
-      <label for="q">Buscar produto:</label>
-      <input
-        id="q"
-        type="search"
-        name="q"
-        placeholder="Digite o nome ou descrição"
-        value="{{ busca }}"
-      >
+        <input type="search"
+               name="q"
+               placeholder="Buscar produto ou vendedor"
+               value="{{ busca }}"
+               style="flex: 1; min-width: 200px; padding: 12px;">
 
-      <label for="categoria">Categoria:</label>
-      <select id="categoria" name="categoria">
-        <option value="">Todas as categorias</option>
+        <select name="categoria" style="padding: 12px;">
+            <option value="">Todas as categorias</option>
 
-        {% for valor, nome in categorias %}
-          <option
-            value="{{ valor }}"
-            {% if categoria_selecionada == valor %}selected{% endif %}
-          >
-            {{ nome }}
-          </option>
-        {% endfor %}
-      </select>
+            {% for valor, nome in categorias %}
+                <option value="{{ valor }}"
+                        {% if categoria_ativa == valor %}selected{% endif %}>
+                    {{ nome }}
+                </option>
+            {% endfor %}
+        </select>
 
-      <button type="submit">Buscar</button>
-      <a href="{% url 'loja:catalogo' %}">Limpar filtros</a>
+        <button type="submit"
+                style="padding: 12px 20px; border: 0; border-radius: 6px;
+                       background: #315b3d; color: white; cursor: pointer;">
+            Buscar
+        </button>
     </form>
 
     {% if produtos %}
-      <div class="product-grid">
-        {% for produto in produtos %}
-          {% include 'loja/_product_card.html' %}
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="empty-state">
-        <span>🔎</span>
-        <h2>Nenhum produto encontrado</h2>
-        <p>Tente outra busca ou selecione uma categoria diferente.</p>
-        <a class="button button-dark" href="{% url 'loja:catalogo' %}">
-          Ver todos os produtos
-        </a>
-      </div>
-    {% endif %}
+        <div style="display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                    gap: 20px;">
 
-  </div>
-</section>
+            {% for produto in produtos %}
+                <article style="padding: 20px; border-radius: 10px;
+                                background: white; box-shadow: 0 2px 8px #00000012;">
+                    <h2>{{ produto.nome }}</h2>
+                    <p>{{ produto.get_categoria_display }}</p>
+                    <p>Vendido por {{ produto.vendedor.nome }}</p>
+
+                    <p style="color: #315b3d; font-size: 21px; font-weight: bold;">
+                        R$ {{ produto.preco|floatformat:2 }}
+                    </p>
+
+                    <p>Estoque: {{ produto.estoque }}</p>
+
+                    <a href="{% url 'loja:editar_produto' produto.id %}"
+                       style="display: inline-block; margin-bottom: 12px; color: #315b3d;">
+                        Editar produto
+                    </a>
+
+                    {% if produto.estoque > 0 %}
+                        <form method="post"
+                              action="{% url 'loja:adicionar' produto.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantidade" value="1">
+
+                            <button type="submit"
+                                    style="width: 100%; padding: 12px; border: 0;
+                                           border-radius: 6px; background: #315b3d;
+                                           color: white; cursor: pointer;">
+                                Adicionar ao carrinho
+                            </button>
+                        </form>
+                    {% else %}
+                        <p>Produto esgotado.</p>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <section style="padding: 25px; border-radius: 10px; background: white;">
+            <h2>Nenhum produto encontrado</h2>
+            <p>Você pode cadastrar um produto pelo botão acima.</p>
+        </section>
+    {% endif %}
+</main>
 {% endblock %}
