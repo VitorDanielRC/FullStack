@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import ProdutoCadastroForm
@@ -11,10 +12,30 @@ def catalogo(request):
         vendedor__ativo=True,
     ).select_related("vendedor")
 
+    busca = request.GET.get("q", "").strip()[:100]
+    categoria = request.GET.get("categoria", "")
+
+    if busca:
+        produtos = produtos.filter(
+            Q(nome__icontains=busca)
+            | Q(vendedor__nome__icontains=busca)
+            | Q(vendedor__descricao__icontains=busca)
+        )
+
+    if categoria in Produto.Categoria.values:
+        produtos = produtos.filter(categoria=categoria)
+    else:
+        categoria = ""
+
     return render(
         request,
         "loja/catalogo.html",
-        {"produtos": produtos},
+        {
+            "produtos": produtos,
+            "busca": busca,
+            "categorias": Produto.Categoria.choices,
+            "categoria_ativa": categoria,
+        },
     )
 
 
