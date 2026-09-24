@@ -1,3 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Mercado da Vila</title>
+</head>
+<body>
+    <h1>Mercado da Vila</h1>
+    <p><a href="{% url 'ver_carrinho' %}">Ver carrinho</a></p>
+
+    <h2>Produtos</h2>
+
+    {% for produto in produtos %}
+        <article>
+            <h3>{{ produto.nome }}</h3>
+            <p>Vendedor: {{ produto.vendedor.nome }}</p>
+            <p>Preço: R$ {{ produto.preco }}</p>
+            <p>Estoque: {{ produto.estoque }}</p>
+
+            <form method="post" action="{% url 'adicionar_carrinho' produto.id %}">
+                {% csrf_token %}
+                <button type="submit">Adicionar ao carrinho</button>
+            </form>
+        </article>
+        <hr>
+    {% empty %}
+        <p>Nenhum produto disponível.</p>
+    {% endfor %}
+</body>
+</html>
 {% extends 'loja/base.html' %}
 
 {% block title %}Produtos — Mercado da Vila{% endblock %}
