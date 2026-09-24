@@ -43,6 +43,15 @@
         </button>
     </form>
 
+<section class="page-intro">
+  <div class="container">
+    <h1>Produtos</h1>
+    <p>Confira os produtos disponíveis.</p>
+  </div>
+</section>
+
+<section class="section catalog-section">
+  <div class="container">
     {% if produtos %}
         <div style="display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -92,4 +101,11 @@
         </section>
     {% endif %}
 </main>
+      <div class="empty-state">
+        <h2>Nenhum produto cadastrado</h2>
+        <p>Volte mais tarde para conferir as novidades.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
 {% endblock %}

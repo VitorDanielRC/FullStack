@@ -54,6 +54,11 @@ def catalogo(request):
         "categorias": Produto.Categoria.choices,
         "categoria_ativa": categoria,
         "busca": busca,
+        vendedor__ativo=True
+    ).select_related("vendedor")
+
+    return render(request, "loja/catalogo.html", {
+        "produtos": produtos,
     })
 
 
