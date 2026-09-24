@@ -5,7 +5,7 @@
 {% block content %}
 <section style="padding: 40px 8%; background: #e4eddd;">
     <h1 style="color: #315b3d;">Produtos da Vila</h1>
-    <p>Busque produtos ou escolha uma categoria.</p>
+    <p>Busque pelo nome do produto ou vendedor e filtre por categoria.</p>
 
     <a href="{% url 'loja:cadastrar_produto' %}"
        style="display: inline-block; padding: 12px 18px; border-radius: 6px;
@@ -43,53 +43,62 @@
         </button>
     </form>
 
-    {% if produtos %}
-        <div style="display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                    gap: 20px;">
+    <div style="display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 20px;">
 
-            {% for produto in produtos %}
-                <article style="padding: 20px; border-radius: 10px;
-                                background: white; box-shadow: 0 2px 8px #00000012;">
-                    <h2>{{ produto.nome }}</h2>
-                    <p>{{ produto.get_categoria_display }}</p>
-                    <p>Vendido por {{ produto.vendedor.nome }}</p>
+        {% for produto in produtos %}
+            <article style="padding: 20px; border-radius: 10px;
+                            background: white; box-shadow: 0 2px 8px #00000012;">
+                <h2>{{ produto.nome }}</h2>
+                <p>{{ produto.get_categoria_display }}</p>
+                <p>Vendido por {{ produto.vendedor.nome }}</p>
 
-                    <p style="color: #315b3d; font-size: 21px; font-weight: bold;">
-                        R$ {{ produto.preco|floatformat:2 }}
-                    </p>
+                <p style="color: #315b3d; font-size: 21px; font-weight: bold;">
+                    R$ {{ produto.preco|floatformat:2 }}
+                </p>
 
-                    <p>Estoque: {{ produto.estoque }}</p>
+                <p>Estoque: {{ produto.estoque }}</p>
 
-                    <a href="{% url 'loja:editar_produto' produto.id %}"
-                       style="display: inline-block; margin-bottom: 12px; color: #315b3d;">
-                        Editar produto
-                    </a>
+                <a href="{% url 'loja:editar_produto' produto.id %}"
+                   style="display: inline-block; margin-bottom: 12px; color: #315b3d;">
+                    Editar produto
+                </a>
 
-                    {% if produto.estoque > 0 %}
-                        <form method="post"
-                              action="{% url 'loja:adicionar' produto.id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="quantidade" value="1">
+                {% if produto.estoque > 0 %}
+                    <form method="post"
+                          action="{% url 'loja:adicionar' produto.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantidade" value="1">
 
-                            <button type="submit"
-                                    style="width: 100%; padding: 12px; border: 0;
-                                           border-radius: 6px; background: #315b3d;
-                                           color: white; cursor: pointer;">
-                                Adicionar ao carrinho
-                            </button>
-                        </form>
-                    {% else %}
-                        <p>Produto esgotado.</p>
-                    {% endif %}
-                </article>
-            {% endfor %}
-        </div>
-    {% else %}
-        <section style="padding: 25px; border-radius: 10px; background: white;">
-            <h2>Nenhum produto encontrado</h2>
-            <p>Você pode cadastrar um produto pelo botão acima.</p>
-        </section>
-    {% endif %}
+                        <button type="submit"
+                                style="width: 100%; padding: 12px; border: 0;
+                                       border-radius: 6px; background: #315b3d;
+                                       color: white; cursor: pointer;">
+                            Adicionar ao carrinho
+                        </button>
+                    </form>
+                {% else %}
+                    <p>Produto esgotado.</p>
+                {% endif %}
+            </article>
+        {% empty %}
+            <section style="padding: 25px; border-radius: 10px; background: white;">
+                {% if busca and categoria_ativa %}
+                    <h2>Nenhum produto encontrado</h2>
+                    <p>Não encontramos produtos para “{{ busca }}” nessa categoria.</p>
+                {% elif busca %}
+                    <h2>Nenhum produto encontrado</h2>
+                    <p>Não encontramos produtos para “{{ busca }}”.</p>
+                {% elif categoria_ativa %}
+                    <h2>Nenhum produto nesta categoria</h2>
+                    <p>Você pode escolher outra categoria.</p>
+                {% else %}
+                    <h2>Nenhum produto cadastrado</h2>
+                    <p>Cadastre um produto pelo botão acima.</p>
+                {% endif %}
+            </section>
+        {% endfor %}
+    </div>
 </main>
 {% endblock %}
