@@ -1,13 +1,22 @@
 from django.urls import path
 
-from . import views
+from . import cadastro, views
 
 app_name = "loja"
 
 urlpatterns = [
     path("", views.inicio, name="inicio"),
-    path("produtos/", views.catalogo, name="catalogo"),
-    path("produtos/<slug:slug>/", views.produto, name="produto"),
+    path("produtos/", cadastro.catalogo, name="catalogo"),
+    path(
+        "produtos/cadastrar/",
+        cadastro.cadastrar_produto,
+        name="cadastrar_produto",
+    ),
+    path(
+        "produtos/<int:produto_id>/editar/",
+        cadastro.editar_produto,
+        name="editar_produto",
+    ),
     path("carrinho/", views.carrinho, name="carrinho"),
     path(
         "carrinho/adicionar/<int:produto_id>/",

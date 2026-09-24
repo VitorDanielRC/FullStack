@@ -7,6 +7,11 @@ from django.db import models
 
 class Vendedor(models.Model):
     nome = models.CharField(max_length=100)
+    descricao = models.CharField(
+        max_length=240,
+        blank=True,
+        default="",
+    )
     ativo = models.BooleanField(default=True)
 
     def __str__(self):
