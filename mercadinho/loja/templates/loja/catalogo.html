@@ -1,33 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Mercado da Vila</title>
-</head>
-<body>
-    <h1>Mercado da Vila</h1>
-    <p><a href="{% url 'ver_carrinho' %}">Ver carrinho</a></p>
-
-    <h2>Produtos</h2>
-
-    {% for produto in produtos %}
-        <article>
-            <h3>{{ produto.nome }}</h3>
-            <p>Vendedor: {{ produto.vendedor.nome }}</p>
-            <p>Preço: R$ {{ produto.preco }}</p>
-            <p>Estoque: {{ produto.estoque }}</p>
-
-            <form method="post" action="{% url 'adicionar_carrinho' produto.id %}">
-                {% csrf_token %}
-                <button type="submit">Adicionar ao carrinho</button>
-            </form>
-        </article>
-        <hr>
-    {% empty %}
-        <p>Nenhum produto disponível.</p>
-    {% endfor %}
-</body>
-</html>
 {% extends 'loja/base.html' %}
 
 {% block title %}Produtos — Mercado da Vila{% endblock %}
@@ -57,7 +27,6 @@
 
         <select name="categoria" style="padding: 12px;">
             <option value="">Todas as categorias</option>
-
             {% for valor, nome in categorias %}
                 <option value="{{ valor }}"
                         {% if categoria_ativa == valor %}selected{% endif %}>
@@ -83,11 +52,9 @@
                 <h2>{{ produto.nome }}</h2>
                 <p>{{ produto.get_categoria_display }}</p>
                 <p>Vendido por {{ produto.vendedor.nome }}</p>
-
                 <p style="color: #315b3d; font-size: 21px; font-weight: bold;">
                     R$ {{ produto.preco|floatformat:2 }}
                 </p>
-
                 <p>Estoque: {{ produto.estoque }}</p>
 
                 <a href="{% url 'loja:editar_produto' produto.id %}"
@@ -100,7 +67,6 @@
                           action="{% url 'loja:adicionar' produto.id %}">
                         {% csrf_token %}
                         <input type="hidden" name="quantidade" value="1">
-
                         <button type="submit"
                                 style="width: 100%; padding: 12px; border: 0;
                                        border-radius: 6px; background: #315b3d;
@@ -131,11 +97,4 @@
         {% endfor %}
     </div>
 </main>
-      <div class="empty-state">
-        <h2>Nenhum produto cadastrado</h2>
-        <p>Volte mais tarde para conferir as novidades.</p>
-      </div>
-    {% endif %}
-  </div>
-</section>
 {% endblock %}
