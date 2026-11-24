@@ -1,0 +1,20 @@
+{% extends 'loja/painel/base.html' %}
+{% block painel %}
+<header class="painel-titulo">
+  <div><a class="text-link" href="{% url 'painel:pedidos' %}">Voltar aos pedidos</a><h1>{{ entrega.pedido }}</h1><p>{{ entrega.pedido.criado_em|date:"d/m/Y H:i" }}</p></div>
+</header>
+<div class="painel-duas-colunas painel-ordem">
+  <article class="painel-cartao painel-rolagem">
+    <h2>Itens da sua loja</h2>
+    <table class="painel-tabela"><thead><tr><th scope="col">Produto</th><th scope="col">Qtd.</th><th scope="col">Subtotal</th></tr></thead>
+      <tbody>{% for item in entrega.itens.all %}<tr><td>{{ item.nome_produto }}</td><td>{{ item.quantidade }}</td><td>R$ {{ item.subtotal|floatformat:2 }}</td></tr>{% endfor %}</tbody>
+    </table>
+    <dl class="painel-valores"><dt>Subtotal</dt><dd>R$ {{ entrega.subtotal|floatformat:2 }}</dd><dt>Desconto</dt><dd>R$ {{ entrega.desconto|floatformat:2 }}</dd><dt>Total</dt><dd>R$ {{ entrega.total|floatformat:2 }}</dd></dl>
+  </article>
+  <article class="painel-cartao">
+    <h2>Entrega</h2>
+    <address>{{ entrega.pedido.nome }}<br>{{ entrega.pedido.endereco }}<br>{{ entrega.pedido.cidade }} · {{ entrega.pedido.cep }}<br>{{ entrega.pedido.telefone }}</address>
+    <form class="painel-edicao" method="post">{% csrf_token %}{{ form.as_div }}<button type="submit" class="button button-dark">Atualizar status</button></form>
+  </article>
+</div>
+{% endblock %}

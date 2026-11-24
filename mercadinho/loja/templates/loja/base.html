@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'loja/style.css' %}">
+  {% block styles %}{% endblock %}
 </head>
 <body>
   <div class="announcement">Uma seleção feita para o seu dia a dia <span aria-hidden="true">✳</span> Entrega a combinar</div>
@@ -37,7 +38,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div><a class="brand brand-footer" href="{% url 'loja:inicio' %}"><span class="brand-mark" aria-hidden="true">✳</span> vila<span class="brand-dot">.</span></a><p>Coisas boas para fazer do cotidiano um lugar melhor.</p></div>
-      <div><strong>Explore</strong><a href="{% url 'loja:catalogo' %}">Todos os produtos</a><a href="{% url 'loja:carrinho' %}">Meu carrinho</a></div>
+      <div><strong>Explore</strong><a href="{% url 'loja:catalogo' %}">Todos os produtos</a><a href="{% url 'loja:carrinho' %}">Meu carrinho</a><a href="{% url 'painel:dashboard' %}">Painel do vendedor</a></div>
       <div><strong>Sobre seu pedido</strong><p>Os pedidos são registrados aqui. O pagamento e a entrega são combinados separadamente.</p></div>
     </div>
     <div class="container footer-bottom"><span>© {% now "Y" %} Mercado da Vila</span><span>Feito com cuidado, de ponta a ponta.</span></div>

@@ -1,0 +1,14 @@
+{% extends 'loja/painel/base.html' %}
+{% block painel %}
+<header class="painel-titulo"><div><a class="text-link" href="{% url 'painel:catalogo' recurso=recurso %}">Voltar à lista</a><h1>{% if pk %}Editar {{ singular }}{% else %}Novo {{ singular }}{% endif %}</h1></div></header>
+<div class="painel-cartao">
+  <form class="painel-edicao" method="post">{% csrf_token %}{{ form.as_div }}<button type="submit" class="button button-dark">Salvar</button></form>
+  {% if pk %}
+    <details class="painel-excluir"><summary>Excluir {{ singular }}</summary>
+      <form method="post" action="{% url 'painel:excluir' recurso=recurso pk=pk %}">
+        {% csrf_token %}<p>Esta ação remove o registro do catálogo da sua loja.</p><button type="submit" class="button painel-button-light">Confirmar exclusão</button>
+      </form>
+    </details>
+  {% endif %}
+</div>
+{% endblock %}

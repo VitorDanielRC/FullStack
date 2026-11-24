@@ -1,22 +1,23 @@
-from decimal import Decimal, ROUND_HALF_UP
-
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .models import Cupom, ItemPedido, Produto
+from .models import Cupom, ItemPedido, Pedido, PedidoVendedor, Produto
+from .precos import ZERO, calcular_descontos
 
 
 class ErroPedido(Exception):
     pass
 
 
-def buscar_cupom(codigo):
+def buscar_cupom(codigo, vendedor_ids):
     if not codigo:
         return None
-    cupom = Cupom.objects.filter(codigo__iexact=codigo.strip()).first()
-    if not cupom or not cupom.ativo or (cupom.valido_ate and cupom.valido_ate < timezone.localdate()):
+    cupom = Cupom.objects.filter(codigo__iexact=codigo.strip(), ativo=True).order_by("pk").first()
+    if not cupom or (cupom.valido_ate and cupom.valido_ate < timezone.localdate()):
         raise ErroPedido("Cupom inválido ou vencido.")
+    if cupom.vendedor_id is not None and cupom.vendedor_id not in vendedor_ids:
+        raise ErroPedido("Este cupom não se aplica aos produtos do carrinho.")
     return cupom
 
 
@@ -34,28 +35,39 @@ def criar_pedido(formulario, carrinho, codigo_cupom=""):
     if len(produtos) != len(carrinho):
         raise ErroPedido("Um produto do carrinho não está mais disponível.")
 
-    subtotal = Decimal("0.00")
+    subtotais = {}
     for produto in produtos:
         quantidade = carrinho[str(produto.pk)]
         if not produto.ativo or not produto.vendedor.ativo:
             raise ErroPedido(f"{produto.nome} não está mais disponível.")
         if quantidade > produto.estoque:
             raise ErroPedido(f"Estoque insuficiente para {produto.nome}. Disponível: {produto.estoque}.")
-        subtotal += produto.preco * quantidade
+        vendedor_id = produto.vendedor_id
+        subtotais[vendedor_id] = subtotais.get(vendedor_id, ZERO) + produto.preco * quantidade
 
-    cupom = buscar_cupom(codigo_cupom)
-    desconto = Decimal("0.00")
-    if cupom:
-        desconto = (subtotal * cupom.desconto_percentual / 100).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
+    subtotal = sum(subtotais.values(), ZERO)
+    if subtotal >= 100_000_000:
+        raise ErroPedido("O valor do carrinho ultrapassa o limite de um pedido.")
+    cupom = buscar_cupom(codigo_cupom, subtotais)
+    descontos = calcular_descontos(subtotais, cupom)
 
     pedido = formulario.save(commit=False)
     pedido.cupom = cupom
     pedido.subtotal = subtotal
-    pedido.desconto = desconto
-    pedido.total = subtotal - desconto
+    pedido.desconto = sum(descontos.values(), ZERO)
+    pedido.total = subtotal - pedido.desconto
     pedido.save()
+
+    entregas = {}
+    for vendedor_id, subtotal_vendedor in subtotais.items():
+        desconto = descontos[vendedor_id]
+        entregas[vendedor_id] = PedidoVendedor.objects.create(
+            pedido=pedido,
+            vendedor_id=vendedor_id,
+            subtotal=subtotal_vendedor,
+            desconto=desconto,
+            total=subtotal_vendedor - desconto,
+        )
 
     for produto in produtos:
         quantidade = carrinho[str(produto.pk)]
@@ -66,6 +78,7 @@ def criar_pedido(formulario, carrinho, codigo_cupom=""):
             raise ErroPedido(f"Estoque insuficiente para {produto.nome}.")
         ItemPedido.objects.create(
             pedido=pedido,
+            entrega=entregas[produto.vendedor_id],
             produto=produto,
             nome_produto=produto.nome,
             quantidade=quantidade,
@@ -73,3 +86,14 @@ def criar_pedido(formulario, carrinho, codigo_cupom=""):
             subtotal=produto.preco * quantidade,
         )
     return pedido
+
+
+@transaction.atomic
+def atualizar_status_entrega(entrega, status):
+    # Primeiro bloqueia o pedido para serializar atualizações de vendedores distintos.
+    pedido = Pedido.objects.select_for_update().get(pk=entrega.pedido_id)
+    entrega.status = status
+    entrega.save(update_fields=["status"])
+    status_entregas = set(pedido.entregas.values_list("status", flat=True))
+    pedido.status = next(etapa for etapa in Pedido.Status.values if etapa in status_entregas)
+    pedido.save(update_fields=["status"])

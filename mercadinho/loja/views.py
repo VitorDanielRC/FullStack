@@ -1,13 +1,14 @@
-from decimal import Decimal, ROUND_HALF_UP
-
 from django.contrib import messages
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from .cart import detalhes_carrinho, ler_carrinho
 from .forms import PedidoForm
-from .models import Pedido, Produto
+from .models import Pedido, Produto, Vendedor
+from .precos import ZERO, calcular_descontos
 from .services import ErroPedido, buscar_cupom, criar_pedido
 
 
@@ -23,6 +24,13 @@ def catalogo(request):
     produtos = Produto.objects.filter(ativo=True, vendedor__ativo=True).select_related("vendedor")
     categoria = request.GET.get("categoria", "")
     busca = request.GET.get("q", "").strip()[:100]
+    vendedores = Vendedor.objects.filter(ativo=True, produtos__ativo=True).distinct()
+    vendedor_id = request.GET.get("vendedor", "")
+    vendedor = None
+    if vendedor_id.isascii() and vendedor_id.isdecimal() and len(vendedor_id) <= 18:
+        vendedor = vendedores.filter(pk=vendedor_id).first()
+        if vendedor:
+            produtos = produtos.filter(vendedor=vendedor)
     if categoria in Produto.Categoria.values:
         produtos = produtos.filter(categoria=categoria)
     else:
@@ -34,15 +42,27 @@ def catalogo(request):
         "categorias": Produto.Categoria.choices,
         "categoria_ativa": categoria,
         "busca": busca,
+        "vendedores": vendedores,
+        "vendedor_ativo": vendedor,
     })
 
 
-def produto(request, slug):
-    item = get_object_or_404(Produto.objects.select_related("vendedor"), slug=slug, ativo=True, vendedor__ativo=True)
+def produto(request, vendedor_id, slug):
+    item = get_object_or_404(
+        Produto.objects.select_related("vendedor"),
+        vendedor_id=vendedor_id, slug=slug, ativo=True, vendedor__ativo=True,
+    )
     relacionados = Produto.objects.filter(
         ativo=True, vendedor__ativo=True, categoria=item.categoria
     ).exclude(pk=item.pk).select_related("vendedor")[:3]
     return render(request, "loja/produto.html", {"produto": item, "relacionados": relacionados})
+
+
+def produto_legado(request, slug):
+    produto = Produto.objects.filter(slug=slug, ativo=True, vendedor__ativo=True).order_by("pk").first()
+    if produto is None:
+        raise Http404
+    return redirect(produto)
 
 
 def carrinho(request):
@@ -112,15 +132,13 @@ def finalizar(request):
     else:
         formulario = PedidoForm(request.POST or None)
     codigo_cupom = request.POST.get("cupom", "").strip().upper()[:30] if request.method == "POST" else ""
-    desconto_preview = Decimal("0.00")
+    desconto_preview = ZERO
     if request.method == "POST":
         if aplicar_cupom:
             try:
-                cupom = buscar_cupom(codigo_cupom)
+                cupom = buscar_cupom(codigo_cupom, resumo["subtotais"])
                 if cupom:
-                    desconto_preview = (resumo["subtotal"] * cupom.desconto_percentual / 100).quantize(
-                        Decimal("0.01"), rounding=ROUND_HALF_UP
-                    )
+                    desconto_preview = sum(calcular_descontos(resumo["subtotais"], cupom).values(), ZERO)
                 else:
                     formulario.add_error(None, "Digite um código de cupom.")
             except ErroPedido as erro:
@@ -132,6 +150,8 @@ def finalizar(request):
                 formulario.add_error(None, str(erro))
             else:
                 request.session["carrinho"] = {}
+                confirmacoes = request.session.get("pedidos_confirmados", [])
+                request.session["pedidos_confirmados"] = [*confirmacoes[-29:], str(pedido.numero)]
                 return redirect("loja:pedido_confirmado", numero=pedido.numero)
 
     return render(request, "loja/finalizar.html", {
@@ -143,6 +163,11 @@ def finalizar(request):
     })
 
 
+@never_cache
 def pedido_confirmado(request, numero):
-    pedido = get_object_or_404(Pedido.objects.prefetch_related("itens"), numero=numero)
-    return render(request, "loja/pedido_confirmado.html", {"pedido": pedido})
+    if str(numero) not in request.session.get("pedidos_confirmados", []):
+        raise Http404
+    pedido = get_object_or_404(Pedido.objects.prefetch_related("entregas__itens", "entregas__vendedor"), numero=numero)
+    resposta = render(request, "loja/pedido_confirmado.html", {"pedido": pedido})
+    resposta["Referrer-Policy"] = "no-referrer"
+    return resposta

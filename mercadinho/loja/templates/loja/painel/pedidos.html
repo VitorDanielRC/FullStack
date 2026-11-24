@@ -1,0 +1,19 @@
+{% extends 'loja/painel/base.html' %}
+{% block painel %}
+<header class="painel-titulo"><h1>Pedidos</h1></header>
+<div class="painel-cartao painel-rolagem">
+  <table class="painel-tabela">
+    <thead><tr><th scope="col">Pedido</th><th scope="col">Data</th><th scope="col">Status</th><th scope="col">Total</th></tr></thead>
+    <tbody>
+      {% for entrega in pagina %}
+        <tr>
+          <td><a href="{% url 'painel:pedido' pk=entrega.pk %}">#{{ entrega.pedido.numero|stringformat:"s"|slice:":8"|upper }}</a></td>
+          <td>{{ entrega.pedido.criado_em|date:"d/m/Y H:i" }}</td>
+          <td>{{ entrega.get_status_display }}</td><td>R$ {{ entrega.total|floatformat:2 }}</td>
+        </tr>
+      {% empty %}<tr><td colspan="4">Sua loja ainda não recebeu pedidos.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  {% include 'loja/painel/_paginacao.html' %}
+</div>
+{% endblock %}

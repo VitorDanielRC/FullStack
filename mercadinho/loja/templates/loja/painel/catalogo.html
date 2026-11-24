@@ -1,0 +1,23 @@
+{% extends 'loja/painel/base.html' %}
+{% block painel %}
+<header class="painel-titulo">
+  <h1>{{ titulo }}</h1>
+  {% if perfil.eh_admin %}<a class="button button-dark" href="{% url 'painel:novo' recurso=recurso %}">Novo {{ singular }} <span aria-hidden="true">+</span></a>{% endif %}
+</header>
+<div class="painel-cartao painel-rolagem">
+  <table class="painel-tabela">
+    <thead><tr><th scope="col">{{ singular|capfirst }}</th>{% if recurso == 'produtos' %}<th scope="col">Preço</th><th scope="col">Estoque</th>{% else %}<th scope="col">Desconto</th><th scope="col">Validade</th>{% endif %}<th scope="col">Status</th>{% if perfil.eh_admin %}<th scope="col">Ação</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for item in pagina %}
+        <tr>
+          {% if recurso == 'produtos' %}<td>{{ item.nome }}</td><td>R$ {{ item.preco|floatformat:2 }}</td><td>{{ item.estoque }}</td>
+          {% else %}<td>{{ item.codigo }}</td><td>{{ item.desconto_percentual }}%</td><td>{{ item.valido_ate|date:"d/m/Y"|default:"Sem validade" }}</td>{% endif %}
+          <td>{{ item.ativo|yesno:"Ativo,Inativo" }}</td>
+          {% if perfil.eh_admin %}<td><a href="{% url 'painel:editar' recurso=recurso pk=item.pk %}" aria-label="Editar {{ item }}">Editar</a></td>{% endif %}
+        </tr>
+      {% empty %}<tr><td colspan="{% if perfil.eh_admin %}5{% else %}4{% endif %}">Nenhum {{ singular }} cadastrado.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  {% include 'loja/painel/_paginacao.html' %}
+</div>
+{% endblock %}

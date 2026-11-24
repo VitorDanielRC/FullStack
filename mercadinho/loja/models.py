@@ -1,6 +1,7 @@
 import uuid
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.urls import reverse
@@ -19,6 +20,23 @@ class Vendedor(models.Model):
         return self.nome
 
 
+class Perfil(models.Model):
+    class Papel(models.TextChoices):
+        ADMIN = "admin", "Administrador"
+        OPERADOR = "operador", "Operador"
+
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    vendedor = models.ForeignKey(Vendedor, on_delete=models.PROTECT, related_name="perfis")
+    papel = models.CharField(max_length=12, choices=Papel.choices)
+
+    @property
+    def eh_admin(self):
+        return self.papel == self.Papel.ADMIN
+
+    def __str__(self):
+        return f"{self.usuario} · {self.vendedor}"
+
+
 class Produto(models.Model):
     class Categoria(models.TextChoices):
         DESPENSA = "despensa", "Despensa"
@@ -28,7 +46,7 @@ class Produto(models.Model):
 
     vendedor = models.ForeignKey(Vendedor, on_delete=models.PROTECT, related_name="produtos")
     nome = models.CharField(max_length=140)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField()
     descricao = models.TextField()
     categoria = models.CharField(max_length=20, choices=Categoria.choices)
     preco = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
@@ -48,15 +66,17 @@ class Produto(models.Model):
     class Meta:
         ordering = ["nome"]
         verbose_name_plural = "produtos"
+        constraints = [models.UniqueConstraint(fields=["vendedor", "slug"], name="produto_slug_por_vendedor")]
 
     def __str__(self):
         return self.nome
 
     def get_absolute_url(self):
-        return reverse("loja:produto", kwargs={"slug": self.slug})
+        return reverse("loja:produto", kwargs={"vendedor_id": self.vendedor_id, "slug": self.slug})
 
 
 class Cupom(models.Model):
+    vendedor = models.ForeignKey(Vendedor, on_delete=models.PROTECT, null=True, blank=True, related_name="cupons")
     codigo = models.CharField(max_length=30, unique=True)
     desconto_percentual = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(100)]
@@ -87,7 +107,7 @@ class Pedido(models.Model):
     endereco = models.CharField(max_length=200, verbose_name="Endereço")
     cidade = models.CharField(max_length=100)
     cep = models.CharField(max_length=10, verbose_name="CEP")
-    cupom = models.ForeignKey(Cupom, null=True, blank=True, on_delete=models.SET_NULL)
+    cupom = models.ForeignKey(Cupom, null=True, blank=True, on_delete=models.PROTECT)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     desconto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -97,13 +117,32 @@ class Pedido(models.Model):
     class Meta:
         ordering = ["-criado_em"]
         verbose_name_plural = "pedidos"
+        indexes = [models.Index(fields=["criado_em"], name="pedido_criado_em_idx")]
 
     def __str__(self):
         return f"Pedido {str(self.numero)[:8].upper()}"
 
 
+class PedidoVendedor(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="entregas")
+    vendedor = models.ForeignKey(Vendedor, on_delete=models.PROTECT, related_name="pedidos")
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    desconto = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=Pedido.Status.choices, default=Pedido.Status.RECEBIDO)
+
+    class Meta:
+        verbose_name = "pedido do vendedor"
+        verbose_name_plural = "pedidos dos vendedores"
+        constraints = [models.UniqueConstraint(fields=["pedido", "vendedor"], name="pedido_parcela_por_vendedor")]
+
+    def __str__(self):
+        return f"{self.pedido} · {self.vendedor}"
+
+
 class ItemPedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name="itens")
+    entrega = models.ForeignKey(PedidoVendedor, on_delete=models.CASCADE, related_name="itens")
     produto = models.ForeignKey(Produto, on_delete=models.PROTECT)
     nome_produto = models.CharField(max_length=140)
     quantidade = models.PositiveIntegerField(validators=[MinValueValidator(1)])

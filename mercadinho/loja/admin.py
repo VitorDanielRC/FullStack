@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Cupom, ItemPedido, Pedido, Produto, Vendedor
+from .forms import CupomForm
+from .models import Cupom, ItemPedido, Pedido, Perfil, Produto, Vendedor
+
+
+@admin.register(Perfil)
+class PerfilAdmin(admin.ModelAdmin):
+    list_display = ("usuario", "vendedor", "papel")
+    list_filter = ("vendedor", "papel")
+    search_fields = ("usuario__username", "vendedor__nome")
 
 
 @admin.register(Vendedor)
@@ -17,11 +25,16 @@ class ProdutoAdmin(admin.ModelAdmin):
     search_fields = ("nome", "descricao")
     prepopulated_fields = {"slug": ("nome",)}
 
+    def get_readonly_fields(self, request, obj=None):
+        return ("vendedor",) if obj else ()
+
 
 @admin.register(Cupom)
 class CupomAdmin(admin.ModelAdmin):
-    list_display = ("codigo", "desconto_percentual", "valido_ate", "ativo")
-    list_filter = ("ativo",)
+    form = CupomForm
+    fields = ("vendedor", *CupomForm.Meta.fields)
+    list_display = ("codigo", "vendedor", "desconto_percentual", "valido_ate", "ativo")
+    list_filter = ("ativo", "vendedor")
     search_fields = ("codigo",)
 
 
@@ -29,7 +42,7 @@ class ItemPedidoInline(admin.TabularInline):
     model = ItemPedido
     extra = 0
     can_delete = False
-    readonly_fields = ("produto", "nome_produto", "quantidade", "preco_unitario", "subtotal")
+    readonly_fields = ("entrega", "produto", "nome_produto", "quantidade", "preco_unitario", "subtotal")
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -42,9 +55,9 @@ class PedidoAdmin(admin.ModelAdmin):
     search_fields = ("nome", "email", "numero")
     readonly_fields = (
         "numero", "nome", "email", "telefone", "endereco", "cidade", "cep",
-        "cupom", "subtotal", "desconto", "total", "criado_em",
+        "cupom", "subtotal", "desconto", "total", "criado_em", "status",
     )
-    fields = readonly_fields + ("status",)
+    fields = readonly_fields
     inlines = [ItemPedidoInline]
 
     def has_add_permission(self, request):
