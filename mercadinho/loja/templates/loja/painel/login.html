@@ -1,0 +1,12 @@
+{% extends 'loja/painel/base.html' %}
+{% block painel %}
+<div class="painel-cartao painel-login">
+  <h1>Painel do vendedor</h1>
+  <form method="post" class="painel-edicao">
+    {% csrf_token %}
+    {{ form.as_div }}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    <button type="submit" class="button button-dark">Entrar</button>
+  </form>
+</div>
+{% endblock %}

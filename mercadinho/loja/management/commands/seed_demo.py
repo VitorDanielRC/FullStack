@@ -33,6 +33,7 @@ class Command(BaseCommand):
         for slug, nome, descricao, categoria, preco, estoque, icone, cor, vendedor, destaque in produtos:
             _, criado = Produto.objects.get_or_create(
                 slug=slug,
+                vendedor=vendedores[vendedor],
                 defaults={
                     "nome": nome,
                     "descricao": descricao,
@@ -41,7 +42,6 @@ class Command(BaseCommand):
                     "estoque": estoque,
                     "icone": icone,
                     "cor": cor,
-                    "vendedor": vendedores[vendedor],
                     "destaque": destaque,
                 },
             )

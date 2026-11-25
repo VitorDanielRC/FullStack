@@ -13,5 +13,8 @@
       </form>
       {% else %}<span class="sold-out">Esgotado</span>{% endif %}
     </div>
+    {% if vendedor_gerente_id == produto.vendedor_id %}
+      <a class="text-link product-manage" href="{% url 'painel:editar' recurso='produtos' pk=produto.pk %}" aria-label="Editar {{ produto.nome }}">Editar produto</a>
+    {% endif %}
   </div>
 </article>

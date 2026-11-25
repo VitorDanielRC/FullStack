@@ -1,0 +1,53 @@
+{% extends 'loja/painel/base.html' %}
+{% load static %}
+{% block painel %}
+<header class="painel-titulo">
+  <div><h1>Visão geral</h1><p>Desempenho de {{ perfil.vendedor.nome }}</p></div>
+  {% if perfil.eh_admin and dados %}<a class="button painel-button-light" href="{% url 'painel:exportar' %}?{{ request.GET.urlencode }}">Baixar CSV <span aria-hidden="true">↓</span></a>{% endif %}
+</header>
+<form method="get" class="painel-cartao painel-filtro" aria-label="Filtrar por período">
+  {% for campo in form %}<div>{{ campo.label_tag }}{{ campo }}</div>{% endfor %}
+  <button type="submit" class="button button-dark">Filtrar</button>
+  {% if request.GET %}<a class="text-link" href="{% url 'painel:dashboard' %}">Limpar</a>{% endif %}
+  {% if form.errors %}<div class="painel-filtro-erros" role="alert">{{ form.errors }}</div>{% endif %}
+</form>
+{% if dados %}
+  <div class="painel-indicadores">
+    <article class="painel-cartao"><p>Pedidos no período</p><strong>{{ dados.totais.pedidos }}</strong></article>
+    <article class="painel-cartao"><p>Valor dos pedidos</p><strong>R$ {{ dados.totais.valor|floatformat:2 }}</strong></article>
+    <article class="painel-cartao"><p>Pedidos concluídos</p><strong>{{ dados.totais.concluidos }}</strong></article>
+  </div>
+  {% if perfil.eh_admin %}
+    <article class="painel-cartao painel-grafico">
+      <h2>Pedidos por mês</h2>
+      {% if dados.serie %}
+        <div class="painel-canvas"><canvas id="pedidos-mes" role="img" aria-label="Gráfico de pedidos por mês"></canvas></div>
+        <details><summary>Ver dados do gráfico</summary>
+          <table class="painel-tabela"><thead><tr><th scope="col">Mês</th><th scope="col">Pedidos</th></tr></thead>
+          <tbody>{% for mes in dados.serie %}<tr><td>{{ mes.mes }}</td><td>{{ mes.total }}</td></tr>{% endfor %}</tbody></table>
+        </details>
+        {{ dados.serie|json_script:"dados-pedidos-mes" }}
+        <script src="{% static 'loja/vendor/chartjs/chart.umd.js' %}" defer></script>
+        <script src="{% static 'loja/dashboard.js' %}" defer></script>
+      {% else %}<p class="painel-vazio">Sem pedidos no período.</p>{% endif %}
+    </article>
+  {% endif %}
+  <div class="painel-duas-colunas">
+    <article class="painel-cartao">
+      <h2>Produtos mais vendidos</h2>
+      <table class="painel-tabela"><thead><tr><th scope="col">Produto</th><th scope="col">Unidades</th></tr></thead>
+        <tbody>{% for item in dados.ranking %}<tr><td>{{ item.produto__nome }}</td><td>{{ item.unidades }}</td></tr>{% empty %}<tr><td colspan="2">Sem produtos vendidos no período.</td></tr>{% endfor %}</tbody>
+      </table>
+    </article>
+    <article class="painel-cartao">
+      <h2>Pedidos por status</h2>
+      <ul class="painel-status">
+        {% for item in dados.distribuicao %}
+          <li><div><span>{{ item.rotulo }}</span><strong>{{ item.total }}</strong></div>
+            <meter min="0" max="{{ dados.totais.pedidos|default:1 }}" value="{{ item.total }}" aria-label="{{ item.rotulo }}"></meter></li>
+        {% endfor %}
+      </ul>
+    </article>
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'loja/base.html' %}
+{% load static %}
+{% block title %}Painel do vendedor — Mercado da Vila{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'loja/painel.css' %}">{% endblock %}
+{% block content %}
+<section class="painel">
+  <div class="container painel-layout">
+    {% if perfil %}
+      <aside class="painel-nav" aria-label="Painel do vendedor">
+        <div class="painel-identidade">
+          <span class="painel-emblema" aria-hidden="true">{{ perfil.vendedor.nome|first }}</span>
+          <div><strong>{{ perfil.vendedor.nome }}</strong><small>{{ perfil.get_papel_display }}</small></div>
+        </div>
+        {% with atual=request.resolver_match.url_name %}
+          <nav aria-label="Gestão da loja">
+            <a href="{% url 'painel:dashboard' %}" {% if atual == 'dashboard' %}aria-current="page"{% endif %}>Visão geral</a>
+            <a href="{% url 'painel:pedidos' %}" {% if atual == 'pedidos' or atual == 'pedido' %}aria-current="page"{% endif %}>Pedidos</a>
+            <a href="{% url 'painel:catalogo' recurso='produtos' %}" {% if recurso == 'produtos' %}aria-current="page"{% endif %}>Produtos</a>
+            {% if perfil.eh_admin %}<a href="{% url 'painel:catalogo' recurso='cupons' %}" {% if recurso == 'cupons' %}aria-current="page"{% endif %}>Cupons</a>{% endif %}
+            <a href="{% url 'api:api-root' %}">API</a>
+          </nav>
+        {% endwith %}
+        <form method="post" action="{% url 'painel:logout' %}">{% csrf_token %}<button type="submit">Sair</button></form>
+      </aside>
+    {% endif %}
+    <div class="painel-conteudo {% if not perfil %}painel-conteudo-login{% endif %}">{% block painel %}{% endblock %}</div>
+  </div>
+</section>
+{% endblock %}

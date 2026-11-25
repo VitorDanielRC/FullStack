@@ -1,98 +1,68 @@
-from decimal import Decimal
-
 from django import forms
-from django.core.exceptions import ValidationError
 
-from .models import Pedido, Produto, Vendedor
+from .models import Cupom, Pedido, Produto
+from .validacao import validar_codigo, validar_slug
+
+
+CAMPOS_PRODUTO = ("nome", "slug", "descricao", "categoria", "preco", "estoque", "imagem_url", "icone", "cor", "destaque", "ativo")
+CAMPOS_CUPOM = ("codigo", "desconto_percentual", "ativo", "valido_ate")
 
 
 class PedidoForm(forms.ModelForm):
     class Meta:
         model = Pedido
-        fields = ["nome_cliente"]
+        fields = ["nome", "email", "telefone", "endereco", "cidade", "cep"]
         widgets = {
-            "nome_cliente": forms.TextInput(
-                attrs={
-                    "autocomplete": "name",
-                    "placeholder": "Seu nome completo",
-                }
-            ),
+            "nome": forms.TextInput(attrs={"autocomplete": "name", "placeholder": "Seu nome completo"}),
+            "email": forms.EmailInput(attrs={"autocomplete": "email", "placeholder": "voce@exemplo.com"}),
+            "telefone": forms.TextInput(attrs={"autocomplete": "tel", "placeholder": "(21) 99999-9999"}),
+            "endereco": forms.TextInput(attrs={"autocomplete": "street-address", "placeholder": "Rua, número e complemento"}),
+            "cidade": forms.TextInput(attrs={"autocomplete": "address-level2", "placeholder": "Sua cidade"}),
+            "cep": forms.TextInput(attrs={"autocomplete": "postal-code", "placeholder": "00000-000"}),
         }
 
 
-class ProdutoCadastroForm(forms.ModelForm):
-    vendedor_nome = forms.CharField(
-        label="Nome do vendedor",
-        max_length=100,
-        widget=forms.TextInput(
-            attrs={"placeholder": "Nome do vendedor"}
-        ),
-    )
-
-    preco = forms.DecimalField(
-        label="Preço",
-        max_digits=8,
-        decimal_places=2,
-        widget=forms.NumberInput(
-            attrs={"step": "0.01", "placeholder": "0,00"}
-        ),
-    )
-
-    estoque = forms.IntegerField(
-        label="Quantidade em estoque",
-        widget=forms.NumberInput(attrs={"step": "1"}),
-    )
-
+class ProdutoForm(forms.ModelForm):
     class Meta:
         model = Produto
-        fields = ["nome", "categoria", "preco", "estoque"]
-
-    def __init__(self, *args, produto=None, **kwargs):
-        super().__init__(*args, instance=produto, **kwargs)
-
-        if produto:
-            self.initial["vendedor_nome"] = produto.vendedor.nome
+        fields = CAMPOS_PRODUTO
+        labels = {"slug": "Identificador na URL", "preco": "Preço"}
+        error_messages = {"estoque": {"min_value": "O estoque do produto não pode ser negativo."}}
 
     def clean_preco(self):
         preco = self.cleaned_data.get("preco")
-
-        if preco is not None and preco <= Decimal("0"):
-            raise ValidationError("O preço deve ser maior que zero.")
-
+        if preco is not None and preco <= 0:
+            raise forms.ValidationError("O preço do produto deve ser maior que zero.")
         return preco
 
-    def clean_estoque(self):
-        estoque = self.cleaned_data.get("estoque")
+    def clean_slug(self):
+        vendedor = self.cleaned_data.get("vendedor")
+        vendedor_id = vendedor.pk if vendedor else self.instance.vendedor_id
+        return validar_slug(vendedor_id, self.cleaned_data["slug"], self.instance.pk)
 
-        if estoque is not None and estoque < 0:
-            raise ValidationError(
-                "A quantidade em estoque não pode ser negativa."
-            )
 
-        return estoque
+class CupomForm(forms.ModelForm):
+    class Meta:
+        model = Cupom
+        fields = CAMPOS_CUPOM
+        labels = {"valido_ate": "Válido até", "desconto_percentual": "Desconto (%)"}
+        widgets = {"valido_ate": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})}
 
-    def save(self, commit=True):
-        produto = super().save(commit=False)
-        nome_vendedor = self.cleaned_data.get("vendedor_nome", "").strip()
+    def clean_codigo(self):
+        return validar_codigo(self.cleaned_data["codigo"], self.instance.pk)
 
-        vendedor = Vendedor.objects.filter(
-            nome__iexact=nome_vendedor
-        ).first()
 
-        if vendedor is None:
-            vendedor = Vendedor.objects.create(
-                nome=nome_vendedor,
-                descricao="",
-                ativo=True,
-            )
-        elif not vendedor.ativo:
-            vendedor.ativo = True
-            vendedor.save(update_fields=["ativo"])
+class PeriodoForm(forms.Form):
+    inicio = forms.DateField(label="De", required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    fim = forms.DateField(label="Até", required=False, widget=forms.DateInput(attrs={"type": "date"}))
 
-        produto.vendedor = vendedor
-        produto.ativo = True
+    def clean(self):
+        dados = super().clean()
+        inicio, fim = dados.get("inicio"), dados.get("fim")
+        if inicio and fim and inicio > fim:
+            self.add_error("fim", "A data final deve ser igual ou posterior à data inicial.")
+        return dados
 
-        if commit:
-            produto.save()
 
-        return produto
+class StatusEntregaForm(forms.Form):
+    status = forms.ChoiceField(label="Status da entrega", choices=Pedido.Status.choices)

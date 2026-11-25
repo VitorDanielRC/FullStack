@@ -1,6 +1,5 @@
-from decimal import Decimal
-
 from .models import Produto
+from .precos import ZERO
 
 
 def ler_carrinho(request):
@@ -27,7 +26,7 @@ def detalhes_carrinho(request):
         pk__in=[int(chave) for chave in carrinho], ativo=True, vendedor__ativo=True
     ).select_related("vendedor")
     itens = []
-    subtotal = Decimal("0.00")
+    subtotais = {}
     quantidade_total = 0
     encontrados = set()
     for produto in produtos:
@@ -36,11 +35,16 @@ def detalhes_carrinho(request):
         quantidade = carrinho[chave]
         valor = produto.preco * quantidade
         itens.append({"produto": produto, "quantidade": quantidade, "subtotal": valor})
-        subtotal += valor
+        subtotais[produto.vendedor_id] = subtotais.get(produto.vendedor_id, ZERO) + valor
         quantidade_total += quantidade
     if len(encontrados) != len(carrinho):
         request.session["carrinho"] = {chave: valor for chave, valor in carrinho.items() if chave in encontrados}
-    return {"itens": itens, "subtotal": subtotal, "quantidade_total": quantidade_total}
+    return {
+        "itens": itens,
+        "subtotal": sum(subtotais.values(), ZERO),
+        "subtotais": subtotais,
+        "quantidade_total": quantidade_total,
+    }
 
 
 def contagem_carrinho(request):

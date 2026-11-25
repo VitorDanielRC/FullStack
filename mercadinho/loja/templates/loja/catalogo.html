@@ -1,89 +1,35 @@
 {% extends 'loja/base.html' %}
-
 {% block title %}Produtos — Mercado da Vila{% endblock %}
-
 {% block content %}
-<section style="padding: 40px 8%; background: #e4eddd;">
-    <h1 style="color: #315b3d;">Produtos da Vila</h1>
-    <p>Busque produtos e filtre por categoria.</p>
-
-    <a href="{% url 'loja:cadastrar_produto' %}"
-       style="display: inline-block; padding: 12px 18px; border-radius: 6px;
-              background: #315b3d; color: white; text-decoration: none;">
-        Cadastrar produto
-    </a>
+<section class="page-intro">
+  <div class="container">
+    <h1>Produtos da Vila</h1>
+    <p>Busque produtos e filtre por categoria ou vendedor.</p>
+    {% if vendedor_gerente_id %}<a class="button button-dark catalog-manage" href="{% url 'loja:cadastrar_produto' %}">Cadastrar produto</a>{% endif %}
+  </div>
 </section>
-
-<main style="padding: 35px 8%;">
-    <form method="get"
-          action="{% url 'loja:catalogo' %}"
-          style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;">
-
-        <input type="search"
-               name="q"
-               placeholder="Buscar por nome do produto ou vendedor"
-               value="{{ request.GET.q }}"
-               style="flex: 1; min-width: 200px; padding: 12px;">
-
-        <select name="categoria" style="padding: 12px;">
-            <option value="">Todas as categorias</option>
-            {% for valor, nome in categorias %}
-                <option value="{{ valor }}"
-                        {% if categoria_ativa == valor %}selected{% endif %}>
-                    {{ nome }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <button type="submit"
-                style="padding: 12px 20px; border: 0; border-radius: 6px;
-                       background: #315b3d; color: white; cursor: pointer;">
-            Buscar
-        </button>
+<section class="section catalog-section"><div class="container">
+  <div class="catalog-toolbar">
+    <nav class="category-list" aria-label="Categorias">
+      {% url 'loja:catalogo' as catalogo_url %}
+      <a href="{{ catalogo_url }}?q={{ busca|urlencode }}{% if vendedor_ativo %}&amp;vendedor={{ vendedor_ativo.pk }}{% endif %}" {% if not categoria_ativa %}aria-current="page"{% endif %}>Todas as categorias</a>
+      {% for valor, nome in categorias %}
+        <a href="{{ catalogo_url }}?categoria={{ valor }}&amp;q={{ busca|urlencode }}{% if vendedor_ativo %}&amp;vendedor={{ vendedor_ativo.pk }}{% endif %}" {% if categoria_ativa == valor %}aria-current="page"{% endif %}>{{ nome }}</a>
+      {% endfor %}
+    </nav>
+    <form class="search-form catalog-search" method="get" action="{{ catalogo_url }}" role="search">
+      <label class="sr-only" for="q">Buscar por produto ou vendedor</label>
+      <input id="q" type="search" name="q" placeholder="Produto ou vendedor" value="{{ busca }}">
+      <label class="sr-only" for="vendedor">Vendedor</label>
+      <select id="vendedor" name="vendedor">
+        <option value="">Todos os vendedores</option>
+        {% for vendedor in vendedores %}<option value="{{ vendedor.pk }}" {% if vendedor == vendedor_ativo %}selected{% endif %}>{{ vendedor.nome }}</option>{% endfor %}
+      </select>
+      {% if categoria_ativa %}<input type="hidden" name="categoria" value="{{ categoria_ativa }}">{% endif %}
+      <button type="submit" aria-label="Buscar">⌕</button>
     </form>
-
-    <div style="display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                gap: 20px;">
-
-        {% for produto in produtos %}
-            <article style="padding: 20px; border-radius: 10px;
-                            background: white; box-shadow: 0 2px 8px #00000012;">
-                <h2>{{ produto.nome }}</h2>
-                <p>{{ produto.get_categoria_display }}</p>
-                <p>Vendido por {{ produto.vendedor.nome }}</p>
-                <p style="color: #315b3d; font-size: 21px; font-weight: bold;">
-                    R$ {{ produto.preco|floatformat:2 }}
-                </p>
-                <p>Estoque: {{ produto.estoque }}</p>
-
-                <a href="{% url 'loja:editar_produto' produto.id %}"
-                   style="display: inline-block; margin-bottom: 12px; color: #315b3d;">
-                    Editar produto
-                </a>
-
-                {% if produto.estoque > 0 %}
-                    <form method="post"
-                          action="{% url 'loja:adicionar' produto.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="quantidade" value="1">
-                        <button type="submit"
-                                style="width: 100%; padding: 12px; border: 0;
-                                       border-radius: 6px; background: #315b3d;
-                                       color: white; cursor: pointer;">
-                            Adicionar ao carrinho
-                        </button>
-                    </form>
-                {% else %}
-                    <p>Produto esgotado.</p>
-                {% endif %}
-            </article>
-        {% empty %}
-            <section style="padding: 25px; border-radius: 10px; background: white;">
-                <h2>Nenhum produto encontrado</h2>
-                <p>Tente mudar o texto da busca ou escolher outra categoria.</p>
-            </section>
-        {% endfor %}
-    </div>
-</main>
+  </div>
+  <p class="result-count">{{ produtos|length }} produto{{ produtos|length|pluralize }} encontrado{{ produtos|length|pluralize }}</p>
+  {% if produtos %}<div class="product-grid">{% for produto in produtos %}{% include 'loja/_product_card.html' %}{% endfor %}</div>{% else %}<div class="empty-state"><span>🔎</span><h2>Nenhum produto encontrado</h2><p>Tente outra busca ou escolha uma categoria diferente.</p><a class="button button-dark" href="{% url 'loja:catalogo' %}">Ver todos os produtos</a></div>{% endif %}
+</div></section>
 {% endblock %}

@@ -4,6 +4,8 @@ Projeto Full Stack desenvolvido com **Python e Django** para simular um mini e-c
 
 A aplicação possui catálogo de produtos, pesquisa, filtros, carrinho de compras, cupons de desconto, criação de pedidos e controle de estoque.
 
+Na P2, um pedido pode reunir produtos de várias lojas. Cada vendedor acessa seus pedidos, produtos e métricas pelo painel ou pela API REST. Veja [como configurar os acessos da P2](mercadinho/README.md#acesso-à-gestão).
+
 > 🎓 Projeto acadêmico desenvolvido para prática de desenvolvimento web Full Stack.
 
 ---
@@ -11,8 +13,8 @@ A aplicação possui catálogo de produtos, pesquisa, filtros, carrinho de compr
 ## 🚀 Funcionalidades
 
 * 🏠 Página inicial com produtos em destaque
-* 🔎 Pesquisa de produtos por nome ou descrição
-* 🗂️ Filtro por categorias
+* 🔎 Pesquisa na vitrine por nome ou descrição de produto e vendedor
+* 🗂️ Filtro por categoria e vendedor
 * 📦 Página individual de cada produto
 * 🛒 Carrinho de compras utilizando sessão do Django
 * ➕ Adição, alteração e remoção de produtos do carrinho
@@ -22,6 +24,8 @@ A aplicação possui catálogo de produtos, pesquisa, filtros, carrinho de compr
 * 🔢 Número único de pedido utilizando UUID
 * 📉 Atualização automática do estoque
 * ⚙️ Painel administrativo do Django
+* Painel do vendedor com papéis de administrador e operador
+* API REST, dashboard por loja e exportação CSV
 * 🧪 Testes automatizados
 * 🗄️ Suporte a SQLite e PostgreSQL
 
@@ -73,7 +77,7 @@ FullStack/
 
 ## 🧩 Modelos do sistema
 
-O sistema possui cinco modelos principais:
+Modelos usados pela loja e pelo painel:
 
 | Modelo       | Função                                                         |
 | ------------ | -------------------------------------------------------------- |
@@ -82,6 +86,8 @@ O sistema possui cinco modelos principais:
 | `Cupom`      | Cupons de desconto com percentual e validade                   |
 | `Pedido`     | Dados do cliente, endereço, valores e status                   |
 | `ItemPedido` | Produtos e quantidades pertencentes ao pedido                  |
+| `PedidoVendedor` | Itens, valores e status da entrega de cada vendedor        |
+| `Perfil` | Vincula o usuário a um vendedor e a um papel de acesso               |
 
 ---
 
@@ -203,14 +209,16 @@ O Django Admin pode ser acessado em:
 http://127.0.0.1:8000/admin/
 ```
 
-Através dele é possível administrar:
+O superusuário da plataforma pode administrar:
 
 * Produtos
 * Vendedores
 * Cupons
 * Pedidos
 * Estoque
-* Status dos pedidos
+* Perfis dos vendedores
+
+Os vendedores atualizam o status de suas entregas no painel em `http://127.0.0.1:8000/painel/`.
 
 ---
 
@@ -311,17 +319,15 @@ Algumas validações implementadas no projeto incluem:
 
 # 📌 Status do projeto
 
-### 🟢 MVP funcional
+### P2 implementada
 
-Atualmente o sistema possui as principais funcionalidades necessárias para um mini e-commerce.
+Além do fluxo de compra do MVP, a P2 reúne marketplace, painel de vendedores, dashboard e API REST.
 
 Ainda não possui:
 
 * Pagamento online
 * Cálculo automático de frete
-* Área exclusiva de vendedores
 * Conta individual para clientes
-* API REST
 
 ---
 
@@ -329,14 +335,10 @@ Ainda não possui:
 
 Possíveis evoluções do projeto:
 
-* 🔐 Sistema de login e cadastro
 * 👤 Área do cliente
-* 🧑‍💼 Área do vendedor
-* 📊 Dashboard administrativo
-* 📦 Histórico de pedidos
+* 📦 Histórico de pedidos do cliente
 * 💳 Integração com Mercado Pago
 * 🚚 Cálculo de frete
-* 🔌 API REST com Django REST Framework
 * 🐳 Docker
 * ☁️ Deploy em produção
 * 📱 Melhorias para dispositivos móveis
