@@ -64,6 +64,8 @@ Os testes cobrem o fluxo da P1, a compra com dois vendedores, as permissões por
 
 Na vitrine e no painel, a busca usa nome e descrição porque são os termos que o cliente e o vendedor já conhecem. O filtro por categoria ajuda a reduzir a lista e pode ser combinado com a busca. No painel e na API, a consulta começa pelos produtos do vendedor da sessão.
 
+O formulário de cadastro e edição exige preço maior que zero e estoque igual ou maior que zero. O preço positivo evita publicar um valor inválido e o estoque zero representa um produto que ainda pode aparecer na vitrine, mas está esgotado. O painel e o Django Admin mostram os erros junto aos campos.
+
 O arquivo [MELHORIAS_P1.md](MELHORIAS_P1.md) registra a revisão inicial. O backlog está nas issues do repositório:
 
 - [#15 · Marketplace e isolamento](https://github.com/VitorDanielRC/FullStack/issues/15)

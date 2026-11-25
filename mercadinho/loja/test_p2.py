@@ -116,6 +116,48 @@ class MarketplaceTests(TestCase):
         self.assertEqual([p["id"] for p in resposta.json()["results"]], [self.produto_a.pk])
         self.assertEqual(self.client.get(url, {"q": "café", "categoria": "casa"}).json()["results"], [])
 
+    def test_formulario_de_produto_exibe_erros_e_aceita_estoque_zero(self):
+        self.client.force_login(self.admin)
+        url = reverse("painel:novo", kwargs={"recurso": "produtos"})
+        dados = {
+            "nome": "Mel", "slug": "mel-validacao", "descricao": "Mel puro", "categoria": "despensa",
+            "preco": "0.00", "estoque": "-1", "icone": "🍯", "cor": "#E7EBD6", "ativo": "on",
+        }
+        resposta = self.client.post(url, dados)
+        self.assertContains(resposta, "O preço do produto deve ser maior que zero.")
+        self.assertContains(resposta, "O estoque do produto não pode ser negativo.")
+        self.assertFalse(Produto.objects.filter(slug="mel-validacao").exists())
+
+        resposta = self.client.post(url, {**dados, "preco": "0.01", "estoque": "0"})
+        self.assertEqual(resposta.status_code, 302)
+        produto = Produto.objects.get(vendedor=self.loja_a, slug="mel-validacao")
+        self.assertEqual(produto.preco, Decimal("0.01"))
+        self.assertEqual(produto.estoque, 0)
+
+    def test_admin_da_plataforma_usa_a_mesma_validacao_de_produto(self):
+        plataforma = get_user_model().objects.create_superuser(username="plataforma")
+        self.client.force_login(plataforma)
+        url = reverse("admin:loja_produto_add")
+        dados = {
+            "vendedor": self.loja_b.pk, "nome": "Chá", "slug": "cha-validacao", "descricao": "Chá preto",
+            "categoria": "bebidas", "preco": "-1.00", "estoque": "-2", "icone": "🫖", "cor": "#E7EBD6",
+        }
+        resposta = self.client.post(url, dados)
+        self.assertContains(resposta, "O preço do produto deve ser maior que zero.")
+        self.assertContains(resposta, "O estoque do produto não pode ser negativo.")
+        self.assertFalse(Produto.objects.filter(slug="cha-validacao").exists())
+
+    def test_api_rejeita_preco_zero_e_estoque_negativo(self):
+        cliente = APIClient()
+        cliente.force_login(self.admin)
+        url = reverse("api:produto-detail", args=[self.produto_a.pk])
+        resposta = cliente.patch(url, {"preco": "0.00", "estoque": -1}, format="json")
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(set(resposta.data), {"preco", "estoque"})
+        self.produto_a.refresh_from_db()
+        self.assertEqual(self.produto_a.preco, Decimal("20.05"))
+        self.assertGreaterEqual(self.produto_a.estoque, 0)
+
     def test_painel_e_api_exigem_perfil_e_vendedor_ativo(self):
         painel = reverse("painel:dashboard")
         api = reverse("api:produto-list")

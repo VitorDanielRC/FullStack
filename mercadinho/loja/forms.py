@@ -27,9 +27,18 @@ class ProdutoForm(forms.ModelForm):
         model = Produto
         fields = CAMPOS_PRODUTO
         labels = {"slug": "Identificador na URL", "preco": "Preço"}
+        error_messages = {"estoque": {"min_value": "O estoque do produto não pode ser negativo."}}
+
+    def clean_preco(self):
+        preco = self.cleaned_data.get("preco")
+        if preco is not None and preco <= 0:
+            raise forms.ValidationError("O preço do produto deve ser maior que zero.")
+        return preco
 
     def clean_slug(self):
-        return validar_slug(self.instance.vendedor_id, self.cleaned_data["slug"], self.instance.pk)
+        vendedor = self.cleaned_data.get("vendedor")
+        vendedor_id = vendedor.pk if vendedor else self.instance.vendedor_id
+        return validar_slug(vendedor_id, self.cleaned_data["slug"], self.instance.pk)
 
 
 class CupomForm(forms.ModelForm):

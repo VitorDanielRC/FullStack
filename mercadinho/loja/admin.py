@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .forms import CupomForm
+from .forms import CupomForm, ProdutoForm
 from .models import Cupom, ItemPedido, Pedido, Perfil, Produto, Vendedor
 
 
@@ -20,6 +20,8 @@ class VendedorAdmin(admin.ModelAdmin):
 
 @admin.register(Produto)
 class ProdutoAdmin(admin.ModelAdmin):
+    form = ProdutoForm
+    fields = ("vendedor", *ProdutoForm.Meta.fields)
     list_display = ("nome", "vendedor", "categoria", "preco", "estoque", "ativo", "destaque")
     list_filter = ("categoria", "ativo", "destaque", "vendedor")
     search_fields = ("nome", "descricao")
