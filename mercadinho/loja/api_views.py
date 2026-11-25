@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .acesso import perfil_ativo
+from .catalogo import filtrar_produtos
 from .dashboard import metricas, pedidos_do_vendedor
 from .forms import PeriodoForm
 from .models import Cupom, ItemPedido, PedidoVendedor, Produto, Vendedor
@@ -84,6 +85,12 @@ class CatalogoViewSet(AcessoVendedor, viewsets.ModelViewSet):
 class ProdutoViewSet(CatalogoViewSet):
     modelo = Produto
     serializer_class = ProdutoSerializer
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        if self.action == "list":
+            queryset, _, _ = filtrar_produtos(queryset, self.request.query_params)
+        return queryset
 
 
 class CupomViewSet(CatalogoViewSet):

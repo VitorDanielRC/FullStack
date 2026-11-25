@@ -38,7 +38,7 @@ A [interface do DRF](http://127.0.0.1:8000/api/) usa a mesma sessão Django do p
 | Rota | Operações |
 | --- | --- |
 | `/api/vendedores/` | Consultar o próprio vendedor. Administradores podem atualizar nome e descrição pelo detalhe. |
-| `/api/produtos/` | Consultar, criar, editar e excluir produtos da própria loja conforme o papel. |
+| `/api/produtos/` | Consultar, criar, editar e excluir produtos da própria loja conforme o papel. A listagem aceita `q` e `categoria`. |
 | `/api/cupons/` | Administrar cupons da própria loja. |
 | `/api/pedidos/` | Consultar entregas e usar `PATCH /api/pedidos/{id}/` para atualizar `status`. |
 | `/api/itens/` | Consultar itens das entregas da própria loja. |
@@ -61,6 +61,8 @@ Ao atualizar da P1, faça uma cópia do banco antes de `migrate`. Os pedidos e o
 Os testes cobrem o fluxo da P1, a compra com dois vendedores, as permissões por papel, o isolamento entre lojas e o filtro por período no dashboard, na API e no CSV.
 
 ## Entrega acadêmica
+
+Na vitrine e no painel, a busca usa nome e descrição porque são os termos que o cliente e o vendedor já conhecem. O filtro por categoria ajuda a reduzir a lista e pode ser combinado com a busca. No painel e na API, a consulta começa pelos produtos do vendedor da sessão.
 
 O arquivo [MELHORIAS_P1.md](MELHORIAS_P1.md) registra a revisão inicial. O backlog está nas issues do repositório:
 

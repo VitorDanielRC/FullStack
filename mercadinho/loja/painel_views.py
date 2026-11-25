@@ -11,9 +11,10 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from .acesso import painel_requerido
+from .catalogo import filtrar_produtos
 from .dashboard import metricas, pedidos_do_vendedor
 from .forms import CupomForm, PeriodoForm, ProdutoForm, StatusEntregaForm
-from .models import PedidoVendedor
+from .models import PedidoVendedor, Produto
 from .services import atualizar_status_entrega
 
 
@@ -94,9 +95,13 @@ def pedido(request, perfil, pk):
 @painel_requerido
 def catalogo(request, perfil, recurso):
     _, titulo, singular, objetos = _recurso_catalogo(recurso, perfil)
+    filtros = {}
+    if recurso == "produtos":
+        objetos, busca, categoria = filtrar_produtos(objetos, request.GET)
+        filtros = {"busca": busca, "categoria_ativa": categoria, "categorias": Produto.Categoria.choices}
     return render(request, "loja/painel/catalogo.html", {
         "perfil": perfil, "titulo": titulo, "singular": singular, "recurso": recurso,
-        "pagina": _pagina(request, objetos),
+        "pagina": _pagina(request, objetos), **filtros,
     })
 
 

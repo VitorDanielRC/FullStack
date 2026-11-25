@@ -88,6 +88,34 @@ class MarketplaceTests(TestCase):
         self.assertContains(self.client.get(self.produto_a.get_absolute_url()), self.produto_a.nome)
         self.assertContains(self.client.get(self.produto_b.get_absolute_url()), self.produto_b.nome)
 
+    def test_busca_categoria_e_paginacao_do_painel_respeitam_o_vendedor(self):
+        Produto.objects.bulk_create([
+            Produto(
+                vendedor=self.loja_a, nome=f"Café especial {i}", slug=f"cafe-especial-{i}",
+                descricao="Café torrado", categoria=Produto.Categoria.BEBIDAS, preco=Decimal("25.00"),
+            )
+            for i in range(25)
+        ])
+        self.client.force_login(self.admin)
+        url = reverse("painel:catalogo", kwargs={"recurso": "produtos"})
+        filtro = {"categoria": "bebidas", "q": "CAFé"}
+        primeira = self.client.get(url, filtro)
+        self.assertContains(primeira, 'value="CAFé"')
+        self.assertContains(primeira, "categoria=bebidas&amp;q=CAF%C3%A9&amp;pagina=2")
+        self.assertNotContains(primeira, self.produto_b.nome)
+        pagina = self.client.get(url, {**filtro, "pagina": 2}).context["pagina"]
+        self.assertEqual(pagina.paginator.count, 26)
+        self.assertEqual(len(pagina.object_list), 1)
+        vazia = self.client.get(url, {**filtro, "categoria": "casa"})
+        self.assertContains(vazia, "Nenhum produto encontrado com esses filtros.")
+
+    def test_api_combina_busca_e_categoria_apenas_entre_produtos_do_vendedor(self):
+        self.client.force_login(self.admin)
+        url = reverse("api:produto-list")
+        resposta = self.client.get(url, {"q": "CAFé", "categoria": "bebidas"})
+        self.assertEqual([p["id"] for p in resposta.json()["results"]], [self.produto_a.pk])
+        self.assertEqual(self.client.get(url, {"q": "café", "categoria": "casa"}).json()["results"], [])
+
     def test_painel_e_api_exigem_perfil_e_vendedor_ativo(self):
         painel = reverse("painel:dashboard")
         api = reverse("api:produto-list")

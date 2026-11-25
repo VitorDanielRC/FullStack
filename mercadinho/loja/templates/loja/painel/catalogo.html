@@ -4,6 +4,25 @@
   <h1>{{ titulo }}</h1>
   {% if perfil.eh_admin %}<a class="button button-dark" href="{% url 'painel:novo' recurso=recurso %}">Novo {{ singular }} <span aria-hidden="true">+</span></a>{% endif %}
 </header>
+{% if recurso == 'produtos' %}
+  <form method="get" class="painel-cartao painel-filtro" role="search" aria-label="Buscar produtos da sua loja">
+    <div>
+      <label for="q">Buscar produto</label>
+      <input id="q" name="q" type="search" maxlength="100" value="{{ busca }}" placeholder="Nome ou descrição">
+    </div>
+    <div>
+      <label for="categoria">Categoria</label>
+      <select id="categoria" name="categoria">
+        <option value="">Todas as categorias</option>
+        {% for valor, rotulo in categorias %}
+          <option value="{{ valor }}" {% if valor == categoria_ativa %}selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="button button-dark">Filtrar</button>
+    {% if busca or categoria_ativa %}<a class="text-link" href="{% url 'painel:catalogo' recurso='produtos' %}">Limpar</a>{% endif %}
+  </form>
+{% endif %}
 <div class="painel-cartao painel-rolagem">
   <table class="painel-tabela">
     <thead><tr><th scope="col">{{ singular|capfirst }}</th>{% if recurso == 'produtos' %}<th scope="col">Preço</th><th scope="col">Estoque</th>{% else %}<th scope="col">Desconto</th><th scope="col">Validade</th>{% endif %}<th scope="col">Status</th>{% if perfil.eh_admin %}<th scope="col">Ação</th>{% endif %}</tr></thead>
@@ -15,7 +34,11 @@
           <td>{{ item.ativo|yesno:"Ativo,Inativo" }}</td>
           {% if perfil.eh_admin %}<td><a href="{% url 'painel:editar' recurso=recurso pk=item.pk %}" aria-label="Editar {{ item }}">Editar</a></td>{% endif %}
         </tr>
-      {% empty %}<tr><td colspan="{% if perfil.eh_admin %}5{% else %}4{% endif %}">Nenhum {{ singular }} cadastrado.</td></tr>{% endfor %}
+      {% empty %}
+        <tr><td colspan="{% if perfil.eh_admin %}5{% else %}4{% endif %}">
+          {% if busca or categoria_ativa %}Nenhum produto encontrado com esses filtros.{% else %}Nenhum {{ singular }} cadastrado.{% endif %}
+        </td></tr>
+      {% endfor %}
     </tbody>
   </table>
   {% include 'loja/painel/_paginacao.html' %}
