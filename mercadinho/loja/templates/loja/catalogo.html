@@ -1,7 +1,13 @@
 {% extends 'loja/base.html' %}
 {% block title %}Produtos — Mercado da Vila{% endblock %}
 {% block content %}
-<section class="page-intro"><div class="container"><span class="eyebrow eyebrow-dark">CATÁLOGO DA VILA</span><h1>Encontre sua próxima<br><em>coisa favorita.</em></h1><p>Escolhas que deixam a rotina mais gostosa.</p></div></section>
+<section class="page-intro">
+  <div class="container">
+    <h1>Produtos da Vila</h1>
+    <p>Busque produtos e filtre por categoria ou vendedor.</p>
+    {% if vendedor_gerente_id %}<a class="button button-dark catalog-manage" href="{% url 'loja:cadastrar_produto' %}">Cadastrar produto</a>{% endif %}
+  </div>
+</section>
 <section class="section catalog-section"><div class="container">
   <div class="catalog-toolbar">
     <nav class="category-list" aria-label="Categorias">
@@ -12,8 +18,8 @@
       {% endfor %}
     </nav>
     <form class="search-form catalog-search" method="get" action="{{ catalogo_url }}" role="search">
-      <label class="sr-only" for="q">Buscar produtos</label>
-      <input id="q" type="search" name="q" placeholder="Buscar produtos" value="{{ busca }}">
+      <label class="sr-only" for="q">Buscar por produto ou vendedor</label>
+      <input id="q" type="search" name="q" placeholder="Produto ou vendedor" value="{{ busca }}">
       <label class="sr-only" for="vendedor">Vendedor</label>
       <select id="vendedor" name="vendedor">
         <option value="">Todos os vendedores</option>

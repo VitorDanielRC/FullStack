@@ -62,7 +62,7 @@ Os testes cobrem o fluxo da P1, a compra com dois vendedores, as permissões por
 
 ## Entrega acadêmica
 
-Na vitrine e no painel, a busca usa nome e descrição porque são os termos que o cliente e o vendedor já conhecem. O filtro por categoria ajuda a reduzir a lista e pode ser combinado com a busca. No painel e na API, a consulta começa pelos produtos do vendedor da sessão.
+Na vitrine e no painel, a busca usa nome e descrição do produto porque são os termos que o cliente e o vendedor já conhecem. Na vitrine, a busca também encontra produtos pelo vendedor. O filtro por categoria pode ser combinado com a busca. No painel e na API, a consulta começa pelos produtos do vendedor da sessão.
 
 O formulário de cadastro e edição exige preço maior que zero e estoque igual ou maior que zero. O preço positivo evita publicar um valor inválido e o estoque zero representa um produto que ainda pode aparecer na vitrine, mas está esgotado. O painel e o Django Admin mostram os erros junto aos campos.
 

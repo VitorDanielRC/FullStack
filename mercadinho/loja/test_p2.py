@@ -88,6 +88,27 @@ class MarketplaceTests(TestCase):
         self.assertContains(self.client.get(self.produto_a.get_absolute_url()), self.produto_a.nome)
         self.assertContains(self.client.get(self.produto_b.get_absolute_url()), self.produto_b.nome)
 
+    def test_vitrine_busca_pela_descricao_do_vendedor(self):
+        Vendedor.objects.filter(pk=self.loja_b.pk).update(descricao="Torrefação artesanal")
+        resposta = self.client.get(reverse("loja:catalogo"), {"q": "Torrefação", "categoria": "bebidas"})
+        self.assertContains(resposta, self.produto_b.nome)
+        self.assertNotContains(resposta, self.produto_a.nome)
+
+    def test_atalhos_da_vitrine_respeitam_permissoes_do_painel(self):
+        cadastro = reverse("loja:cadastrar_produto")
+        catalogo = reverse("loja:catalogo")
+        self.assertEqual(self.client.get(cadastro).status_code, 302)
+        self.assertNotContains(self.client.get(catalogo), "Cadastrar produto")
+        self.client.force_login(self.operador)
+        self.assertEqual(self.client.get(cadastro).status_code, 403)
+
+        self.client.force_login(self.admin)
+        resposta = self.client.get(catalogo)
+        self.assertContains(resposta, "Cadastrar produto")
+        self.assertContains(resposta, f'aria-label="Editar {self.produto_a.nome}"')
+        self.assertNotContains(resposta, f'aria-label="Editar {self.produto_b.nome}"')
+        self.assertContains(self.client.get(cadastro), "Novo produto")
+
     def test_busca_categoria_e_paginacao_do_painel_respeitam_o_vendedor(self):
         Produto.objects.bulk_create([
             Produto(

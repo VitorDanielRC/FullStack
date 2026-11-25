@@ -136,3 +136,6 @@ h1,h2,h3{font-family:"Outfit",Arial,sans-serif;letter-spacing:-.045em;line-heigh
   font: inherit;
   font-size: 13px;
 }
+
+.catalog-manage { margin-top: 18px; }
+.product-manage { display: inline-block; margin-top: 10px; }

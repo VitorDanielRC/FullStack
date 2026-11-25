@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
+from .acesso import perfil_ativo
 from .cart import detalhes_carrinho, ler_carrinho
 from .catalogo import filtrar_produtos
 from .forms import PedidoForm
@@ -22,7 +23,7 @@ def inicio(request):
 
 def catalogo(request):
     produtos = Produto.objects.filter(ativo=True, vendedor__ativo=True).select_related("vendedor")
-    produtos, busca, categoria = filtrar_produtos(produtos, request.GET)
+    produtos, busca, categoria = filtrar_produtos(produtos, request.GET, incluir_vendedor=True)
     vendedores = Vendedor.objects.filter(ativo=True, produtos__ativo=True).distinct()
     vendedor_id = request.GET.get("vendedor", "")
     vendedor = None
@@ -30,6 +31,7 @@ def catalogo(request):
         vendedor = vendedores.filter(pk=vendedor_id).first()
         if vendedor:
             produtos = produtos.filter(vendedor=vendedor)
+    perfil = perfil_ativo(request.user)
     return render(request, "loja/catalogo.html", {
         "produtos": produtos,
         "categorias": Produto.Categoria.choices,
@@ -37,6 +39,7 @@ def catalogo(request):
         "busca": busca,
         "vendedores": vendedores,
         "vendedor_ativo": vendedor,
+        "vendedor_gerente_id": perfil.vendedor_id if perfil and perfil.eh_admin else None,
     })
 
 

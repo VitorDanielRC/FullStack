@@ -24,7 +24,7 @@ class ProdutoAdmin(admin.ModelAdmin):
     fields = ("vendedor", *ProdutoForm.Meta.fields)
     list_display = ("nome", "vendedor", "categoria", "preco", "estoque", "ativo", "destaque")
     list_filter = ("categoria", "ativo", "destaque", "vendedor")
-    search_fields = ("nome", "descricao")
+    search_fields = ("nome", "descricao", "vendedor__nome")
     prepopulated_fields = {"slug": ("nome",)}
 
     def get_readonly_fields(self, request, obj=None):
